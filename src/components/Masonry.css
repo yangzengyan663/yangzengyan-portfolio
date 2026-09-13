@@ -1,0 +1,17 @@
+.masonry-list{position:relative;width:min(106rem,calc(100% - 2 * var(--page-gutter)));margin:clamp(1.8rem,3.6vw,4.25rem) auto 0;min-block-size:24rem}
+.masonry-item-wrapper{position:absolute;inset-block-start:0;inset-inline-start:0;opacity:0;will-change:transform,width,height,filter;transform-origin:center center}
+.masonry-item-content{position:relative;width:100%;height:100%;overflow:hidden;border:1px solid rgba(220,200,255,.16);border-radius:clamp(1rem,1.45vw,1.45rem);background:radial-gradient(circle at 50% 38%,#282034 0%,#100d17 55%,#08070c 100%);box-shadow:0 1rem 2.6rem rgba(0,0,0,.24),inset 0 1px rgba(255,255,255,.08)}
+.masonry-item-wrapper .video-tile{width:100%!important;height:100%!important;aspect-ratio:auto!important;border-radius:inherit!important;overflow:hidden}
+.masonry-item-wrapper .video-tile-cover,.masonry-item-wrapper .video-tile video{object-fit:contain!important;object-position:center!important;background:#0a0910}
+.masonry-item-wrapper .video-tile:hover,.masonry-item-wrapper .video-tile:focus-visible{transform:none!important}
+.masonry-color-overlay{position:absolute;inset:0;border-radius:inherit;pointer-events:none;opacity:0;background:linear-gradient(45deg,rgba(255,0,150,.5),rgba(0,150,255,.5));transition:opacity .3s ease}
+.masonry-item-wrapper--shift:hover .masonry-color-overlay{opacity:.3}
+@media(max-width:48rem){.masonry-list{width:calc(100% - 2 * var(--page-gutter));margin-top:1.5rem}.masonry-item-content{border-radius:1rem}}
+@media(prefers-reduced-motion:reduce){.masonry-item-wrapper{opacity:1!important;filter:none!important;transform:none!important}}
+
+.masonry-item-wrapper{z-index:1}
+.masonry-item-wrapper:nth-child(3n){z-index:2}
+.masonry-item-wrapper:nth-child(5n){z-index:3}
+.masonry-item-wrapper .masonry-item-content{transition:border-color .32s ease,box-shadow .32s ease}
+.masonry-item-wrapper:hover{z-index:8}
+.masonry-item-wrapper:hover .masonry-item-content{border-color:rgba(224,204,255,.48);box-shadow:0 1.55rem 3.25rem rgba(0,0,0,.42),0 0 2rem rgba(165,104,246,.14)}

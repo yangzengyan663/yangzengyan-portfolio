@@ -1,0 +1,9 @@
+node_modules/
+dist/
+.compressed-videos/
+.seawork/
+tmp-reference-frames/
+*.log
+.env
+.env.*
+!.env.example
