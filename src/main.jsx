@@ -6,12 +6,12 @@ import BorderGlow from './components/BorderGlow'
 import AccordionGallery from './components/AccordionGallery'
 import CircularGallery from './components/CircularGallery'
 import WebThreads from './components/WebThreads'
-import BounceCards from './components/BounceCards'
 import LightPillar from './components/LightPillar'
 import Masonry from './components/Masonry'
 import ProfileCard from './components/ProfileCard'
 import StrokeText from './components/StrokeText'
 import FoldText from './components/FoldText'
+import DriftWall from './DriftWall'
 import './styles.css'
 
 const videos = [
@@ -26,6 +26,9 @@ const videos = [
   { title: 'TJAX', format: 'landscape', video: '/videos/digital-human-series/tjax.mp4', cover: '/images/digital-human-series/tjax.png' },
   { title: 'TJAX 02', format: 'landscape', video: '/videos/digital-human-series/tjax-02.mp4', cover: '/images/digital-human-series/tjax-02.png' },
 ]
+const closingVideoTitles = new Set(['LUNA', 'SERAPHINA', 'MARCUS SAINT 03', 'MILO', 'SOREN'])
+const musicMvProjects = videos.filter(project => !closingVideoTitles.has(project.title))
+const closingMusicProjects = videos.filter(project => closingVideoTitles.has(project.title))
 const services = [
   ['01', '3D MODELING', 'Creation of detailed objects, characters, or environments tailored to specific client needs, ideal for games, products, and visualizations.'],
   ['02', 'RENDERING', 'High-quality, photorealistic renders that showcase designs with custom lighting, textures, and materials to bring concepts to life.'],
@@ -73,10 +76,14 @@ const fifiGiaProjects = [
   { label: 'FIFI_GIA / FILM 04', video: '/videos/fifi-gia/ip-4.mp4' },
 ]
 const advertisingProjects = [
-  { label: '花露水宣传片', video: '/videos/advertising-series/ad-4.mp4' },
-  { label: '社媒-136-2D视频-SeaArt', video: '/videos/advertising-series/ad-1.mp4' },
-  { label: '市场部社媒用-131-2D视频-SeaArt(3)(1)', video: '/videos/advertising-series/ad-2.mp4' },
-  { label: '社媒1', video: '/videos/advertising-series/ad-3.mp4' },
+  { label: '花露水宣传片', video: '/videos/advertising-series/ad-4.mp4', cover: '/images/advertising-series/ad-4-cover.webp' },
+  { label: '社媒-136-2D视频-SeaArt', video: '/videos/advertising-series/ad-1.mp4', cover: '/images/advertising-series/ad-1-cover.webp' },
+  { label: '市场部社媒用-131-2D视频-SeaArt(3)(1)', video: '/videos/advertising-series/ad-2.mp4', cover: '/images/advertising-series/ad-2-cover.webp' },
+  { label: '社媒1', video: '/videos/advertising-series/ad-3.mp4', cover: '/images/advertising-series/ad-3-cover.webp' },
+]
+const finalShowcaseItems = [
+  ...closingMusicProjects.map(project => ({ image: project.cover, title: project.title, href: project.video, fit: project.format.startsWith('portrait') ? 'contain' : 'cover', category: 'AI DIGITAL HUMAN / MUSIC MV' })),
+  ...advertisingProjects.map(project => ({ image: project.cover, title: project.label, href: project.video, category: 'ADVERTISING / SOCIAL FILM' })),
 ]
 const seaGamesProjects = [
   { label: 'SeaGames / Official Film 01', video: '/videos/advertising-series/seagames-01.mp4', image: '/images/advertising-series/seagames-01.png', number: '01' },
@@ -134,7 +141,7 @@ function InViewLoopVideo({ src, rootMargin = '120px 0px', ...props }) {
 }
 function Marquee() {
   const [selected, setSelected] = useState(null)
-  const masonryItems = useMemo(() => videos.map((project, index) => ({
+  const masonryItems = useMemo(() => musicMvProjects.map((project, index) => ({
     ...project,
     id: project.video,
     img: project.cover,
@@ -300,10 +307,10 @@ function AdvertisingFilms() {
   const [selectedProject, setSelectedProject] = useState(null)
   const [selectedImage, setSelectedImage] = useState(null)
   return <section id="jiangxing-laptop" className="jiangxing-showcase"><div className="jiangxing-showcase-head"><div><span>05 / FEATURED ADVERTISING CASE</span><h2>&#x300a;&#x5c06;&#x661f;&#x300b;<em>&#x7b14;&#x8bb0;&#x672c;&#x5e7f;&#x544a;</em></h2></div><p><b>&#x9879;&#x76ee;&#x7b80;&#x4ecb; / PROJECT SYNOPSIS</b>{jiangxingProject.description}</p></div><div className="jiangxing-showcase-grid"><button className="jiangxing-video" type="button" onClick={() => setSelectedProject(jiangxingProject)} aria-label="Play Jiangxing laptop advertising film"><InViewLoopVideo src={jiangxingProject.video} rootMargin="300px 0px" /><span className="jiangxing-video-scrim" /><span className="jiangxing-video-action"><small>JIANXING LAPTOP / OFFICIAL FILM</small><strong>&#x64ad;&#x653e;&#x5b8c;&#x6574;&#x5e7f;&#x544a;</strong><i>PLAY FULL FILM <ArrowUpRight size={17} /></i></span></button><button className="jiangxing-poster" type="button" onClick={() => setSelectedImage(jiangxingProject)} aria-label="View Jiangxing laptop advertising poster"><img src={jiangxingProject.image} alt="Jiangxing laptop advertising poster" loading="lazy" /><span><small>KEY VISUAL / POSTER</small><strong>&#x70b9;&#x51fb;&#x653e;&#x5927;&#x6d77;&#x62a5;</strong><i>VIEW POSTER <ArrowUpRight size={15} /></i></span></button></div>{selectedProject && <ShortDramaModal project={selectedProject} onClose={() => setSelectedProject(null)} />}{selectedImage && <ImagePreviewModal project={selectedImage} onClose={() => setSelectedImage(null)} />}</section>
-}function CommercialPractice() {
+}function FinalShowcase() {
   const [selectedProject, setSelectedProject] = useState(null)
-  const transforms = ['rotate(-7deg) translateX(-230px)', 'rotate(-2deg) translateX(-75px)', 'rotate(3deg) translateX(75px)', 'rotate(8deg) translateX(230px)']
-  return <section id="commercial-practice" className="commercial-practice"><div className="commercial-practice-head"><span>06 / FINAL SHOWCASE</span><h2>&#x5546;&#x4e1a;&#x5e7f;&#x544a;<em>&#x7ec3;&#x4e60;</em></h2><p>&#x66f4;&#x591a;&#x54c1;&#x724c;&#x4f20;&#x64ad;&#x4e0e;&#x793e;&#x5a92;&#x89c6;&#x89c9;&#x77ed;&#x7247;&#xff0c;&#x70b9;&#x51fb;&#x5361;&#x7247;&#x53ef;&#x67e5;&#x770b;&#x5b8c;&#x6574;&#x89c6;&#x9891;&#x3002;</p></div><div className="advertising-secondary commercial-practice-content"><BounceCards className="advertising-bounce-cards" items={advertisingProjects} containerWidth={1000} containerHeight={500} animationDelay={.6} animationStagger={.12} transformStyles={transforms} enableHover onItemClick={setSelectedProject} /></div>{selectedProject && <ShortDramaModal project={selectedProject} onClose={() => setSelectedProject(null)} />}</section>
+  const openProject = item => setSelectedProject({ label: item.title, video: item.href })
+  return <section id="final-showcase" className="final-showcase"><div className="final-showcase-head"><span>06 / FINAL SHOWCASE</span><div><h2>&#x5F71;&#x50CF;<em>&#x6863;&#x6848;</em></h2><p>&#x6570;&#x5B57;&#x4EBA;&#x97F3;&#x4E50;&#x5F71;&#x50CF;&#x4E0E;&#x54C1;&#x724C;&#x793E;&#x5A92;&#x77ED;&#x7247;&#x5408;&#x96C6;&#x3002;&#x70B9;&#x51FB;&#x4EFB;&#x4E00;&#x753B;&#x9762;&#x64AD;&#x653E;&#x5B8C;&#x6574;&#x89C6;&#x9891;&#x3002;</p></div></div><div className="final-showcase-wall" style={{ height: 600 }}><DriftWall items={finalShowcaseItems} columns={5} tileWidth={200} tileHeight={124} gap={16} tilt={16} turn={-8} perspective={1200} depth={120} speed={42} direction="up" variance={0.45} parallax={0.6} lift={48} fade={0.2} dim={0.65} overlayColor="#060010" radius={15} roll={0} pauseOnHover={false} grayscale={false} onItemClick={openProject} /></div><div className="final-showcase-foot"><span>09 FILMS / SELECTED ARCHIVE</span><span>CLICK TO PLAY <ArrowUpRight size={14} /></span></div>{selectedProject && <ShortDramaModal project={selectedProject} onClose={() => setSelectedProject(null)} />}</section>
 }function Hero({ onReady }) {
   const [progress, setProgress] = useState(0)
   const [ready, setReady] = useState(false)
@@ -392,7 +399,7 @@ function App() {
       'fifi-gia': { theme: 'rose', nav: 'projects' },
       advertising: { theme: 'coral', nav: 'projects' },
       'jiangxing-laptop': { theme: 'electric', nav: 'projects' },
-      'commercial-practice': { theme: 'magenta', nav: 'projects' },
+      'final-showcase': { theme: 'magenta', nav: 'projects' },
     }
     const allSections = [...document.querySelectorAll('main > section')]
     const flowSections = allSections.filter(section => section.id !== 'home')
@@ -484,5 +491,5 @@ function App() {
     }
   }, [])
 
-  return <><SiteNav isVisible={navVisible} activeNav={activeNav} theme={activeTheme} onContact={() => setContactOpen(true)} /><CinematicRail railRef={railRef} theme={activeTheme} activeIndex={activeIndex} isVisible={navVisible} /><div className="cinematic-atmosphere" data-theme={activeTheme} aria-hidden="true" /><main><Hero onReady={() => setNavVisible(true)} /><About /><Marquee /><Services /><Projects /><FifiGia /><AdvertisingFilms /><JiangxingShowcase /><CommercialPractice /></main>{contactOpen && <ContactModal onClose={() => setContactOpen(false)} />}</>
+  return <><SiteNav isVisible={navVisible} activeNav={activeNav} theme={activeTheme} onContact={() => setContactOpen(true)} /><CinematicRail railRef={railRef} theme={activeTheme} activeIndex={activeIndex} isVisible={navVisible} /><div className="cinematic-atmosphere" data-theme={activeTheme} aria-hidden="true" /><main><Hero onReady={() => setNavVisible(true)} /><About /><Marquee /><Services /><Projects /><FifiGia /><AdvertisingFilms /><JiangxingShowcase /><FinalShowcase /></main>{contactOpen && <ContactModal onClose={() => setContactOpen(false)} />}</>
 }createRoot(document.getElementById('root')).render(<StrictMode><App /></StrictMode>)
