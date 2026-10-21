@@ -149,6 +149,9 @@ function Marquee() {
 }function ShortDramaModal({ project, onClose }) {
   const videoRef = useRef(null)
   const [playerStatus, setPlayerStatus] = useState('loading')
+  const [currentTime, setCurrentTime] = useState(0)
+  const [duration, setDuration] = useState(0)
+  const [isPlaying, setIsPlaying] = useState(true)
 
   useEffect(() => {
     const handleKeyDown = event => { if (event.key === 'Escape') onClose() }
@@ -167,10 +170,38 @@ function Marquee() {
     videoRef.current?.play().catch(() => {})
   }
 
+  const syncDuration = () => {
+    const nextDuration = videoRef.current?.duration
+    setDuration(Number.isFinite(nextDuration) ? nextDuration : 0)
+  }
+
+  const seekVideo = event => {
+    const nextTime = Number(event.currentTarget.value)
+    if (!videoRef.current || !Number.isFinite(nextTime)) return
+    videoRef.current.currentTime = nextTime
+    setCurrentTime(nextTime)
+  }
+
+  const togglePlayback = () => {
+    const player = videoRef.current
+    if (!player) return
+    if (player.paused) player.play().catch(() => {})
+    else player.pause()
+  }
+
+  const formatTime = value => {
+    if (!Number.isFinite(value)) return '0:00'
+    const minutes = Math.floor(value / 60)
+    const seconds = Math.floor(value % 60).toString().padStart(2, '0')
+    return `${minutes}:${seconds}`
+  }
+
+  const progress = duration ? Math.min(100, (currentTime / duration) * 100) : 0
+
   return createPortal(<div className="short-drama-modal" role="dialog" aria-modal="true" aria-label={`${project.label} video player`} onClick={onClose}>
     <div className="short-drama-modal-inner" onClick={event => event.stopPropagation()}>
       <div className="short-drama-modal-bar"><div><small>NOW PLAYING</small><strong>{project.label}</strong></div><div><a className="short-drama-external" href={project.video} target="_blank" rel="noreferrer">OPEN VIDEO <ArrowUpRight size={16} /></a><button className="short-drama-fullscreen" onClick={() => videoRef.current?.requestFullscreen?.()}>FULL SCREEN <ArrowUpRight size={16} /></button><button className="short-drama-close" onClick={onClose} aria-label="Close player">&times;</button></div></div>
-      <div className="short-drama-player-wrap"><video ref={videoRef} src={project.video} controls autoPlay muted playsInline preload="auto" onCanPlay={handleCanPlay} onError={() => setPlayerStatus('error')} />{playerStatus === 'loading' && <div className="short-drama-loading">LOADING VIDEO</div>}{playerStatus === 'error' && <div className="short-drama-error">VIDEO FAILED TO LOAD <a href={project.video} target="_blank" rel="noreferrer">OPEN DIRECTLY</a></div>}</div>
+      <div className="short-drama-player-wrap"><video ref={videoRef} src={project.video} controls autoPlay muted playsInline preload="auto" onCanPlay={handleCanPlay} onLoadedMetadata={syncDuration} onDurationChange={syncDuration} onTimeUpdate={event => setCurrentTime(event.currentTarget.currentTime)} onPlay={() => setIsPlaying(true)} onPause={() => setIsPlaying(false)} onEnded={() => setIsPlaying(false)} onError={() => setPlayerStatus('error')} />{playerStatus === 'loading' && <div className="short-drama-loading">LOADING VIDEO</div>}{playerStatus === 'error' && <div className="short-drama-error">VIDEO FAILED TO LOAD <a href={project.video} target="_blank" rel="noreferrer">OPEN DIRECTLY</a></div>}<div className="short-drama-scrubber"><button type="button" onClick={togglePlayback} aria-label={isPlaying ? 'Pause video' : 'Play video'}>{isPlaying ? 'PAUSE' : 'PLAY'}</button><span>{formatTime(currentTime)}</span><input type="range" min="0" max={duration || 0} step="0.05" value={Math.min(currentTime, duration || 0)} onChange={seekVideo} aria-label="Video progress" style={{ '--video-progress': `${progress}%` }} /><span>{formatTime(duration)}</span></div></div>
     </div>
   </div>, document.body)
 }
