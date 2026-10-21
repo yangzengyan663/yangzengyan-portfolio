@@ -333,7 +333,7 @@ function AdvertisingFilms() {
     <div className="reference-orb reference-orb-left" />
     <div className="reference-orb reference-orb-right" />
     <div className="reference-grid" />
-    <div className={`hero-loader ${ready ? 'is-hidden' : ''}`} aria-hidden={ready}>
+    <div className={`hero-loader ${ready ? 'is-hidden' : ''}`} aria-hidden={ready} style={{ '--loader-progress': progress / 100 }}>
       <span>{progress}%</span>
       <div className="hero-loader-rule" />
     </div>
