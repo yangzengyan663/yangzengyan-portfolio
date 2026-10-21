@@ -622,3 +622,19 @@ html{font-size:clamp(.875rem,.76vw,1rem);overflow-x:clip}body,#root,main{inline-
 .final-showcase-foot span:last-child{display:flex;align-items:center;gap:.45rem;color:#edcbff}
 @media(max-width:62rem){.final-showcase-head>div{display:grid;gap:1.25rem}.final-showcase-head p{max-inline-size:38rem}.final-showcase-wall{height:min(600px,60svh)!important}}
 @media(max-width:48rem){.final-showcase{padding-block:6rem 4.25rem}.final-showcase-head h2{font-size:clamp(3rem,13vw,4.8rem);white-space:normal}.final-showcase-head p{padding-left:1rem;font-size:.82rem}.final-showcase-wall{height:31rem!important;min-height:31rem;border-radius:1.15rem}.final-showcase-foot{font-size:.48rem;letter-spacing:.11em}}
+/* Jiangxing is a featured subproject inside the advertising-film chapter. */
+.jiangxing-showcase{padding-block:clamp(5.75rem,8vw,8.5rem) clamp(6.5rem,9vw,9.5rem)}
+.jiangxing-showcase-head{grid-template-columns:minmax(22rem,.82fr) minmax(28rem,1.18fr);align-items:center;gap:clamp(2.5rem,6vw,7rem);margin-bottom:clamp(2.2rem,3.8vw,4rem);padding:clamp(1.4rem,2.2vw,2.2rem);border:1px solid rgba(224,197,255,.14);border-radius:clamp(1rem,1.5vw,1.5rem);background:linear-gradient(115deg,rgba(177,111,245,.075),rgba(255,255,255,.018) 55%,rgba(113,153,255,.045));box-shadow:inset 0 1px rgba(255,255,255,.045)}
+.jiangxing-showcase-head>div>span{margin-bottom:.9rem;font-size:clamp(.54rem,.6vw,.7rem)}
+.jiangxing-showcase h2{max-inline-size:none;font-size:clamp(2.4rem,4.35vw,5.15rem);font-weight:560;line-height:.96;letter-spacing:-.065em;text-wrap:balance}
+.jiangxing-showcase h2 em{display:block;margin-top:.12em;padding-left:0;font-size:.72em;line-height:1.04;letter-spacing:-.045em}
+.jiangxing-showcase-head p{padding:.2rem 0 .2rem clamp(1.25rem,1.8vw,1.8rem);color:rgba(248,242,255,.82);font-size:clamp(1.02rem,1.17vw,1.32rem);line-height:1.78}
+.jiangxing-showcase-head p b{margin-bottom:.8rem;font-size:clamp(.56rem,.62vw,.72rem)}
+.jiangxing-showcase-grid{grid-template-columns:minmax(0,1.28fr) minmax(0,1fr);align-items:start;gap:clamp(1rem,1.65vw,1.75rem)}
+.jiangxing-video,.jiangxing-poster{aspect-ratio:16/9;min-block-size:0}
+.jiangxing-poster{background:radial-gradient(circle at 50% 35%,rgba(106,82,142,.28),transparent 62%),#05040a}
+.jiangxing-poster img{object-fit:contain;object-position:center}
+.jiangxing-poster::after{background:linear-gradient(180deg,transparent 54%,rgba(3,1,8,.82) 100%)}
+.jiangxing-poster:hover img,.jiangxing-poster:focus-visible img{transform:scale(1.012)}
+@media(max-width:62rem){.jiangxing-showcase-head{grid-template-columns:1fr;padding:1.4rem;gap:1.4rem}.jiangxing-showcase-head p{max-inline-size:52rem}.jiangxing-showcase-grid{grid-template-columns:1fr}.jiangxing-video,.jiangxing-poster{aspect-ratio:16/9;min-block-size:0}.jiangxing-poster{max-inline-size:none}}
+@media(max-width:48rem){.jiangxing-showcase{padding-block:5.25rem 5.75rem}.jiangxing-showcase h2{font-size:clamp(2.35rem,10.5vw,3.7rem)}.jiangxing-showcase h2 em{font-size:.68em}.jiangxing-showcase-head p{padding-left:1rem;font-size:1rem;line-height:1.72}.jiangxing-video,.jiangxing-poster{aspect-ratio:16/10;min-block-size:0}.jiangxing-video-action strong,.jiangxing-poster strong{font-size:1.25rem}}
