@@ -643,18 +643,18 @@ html{font-size:clamp(.875rem,.76vw,1rem);overflow-x:clip}body,#root,main{inline-
 .marquee-intro{margin-bottom:clamp(1.5rem,2.7vw,2.75rem)}
 .marquee-intro-content{grid-template-columns:minmax(0,1fr) minmax(24rem,.72fr);gap:clamp(2.25rem,5vw,5.5rem)}
 .marquee-intro-copy{max-width:40rem}
-.marquee-intro-copy p{font-size:clamp(1rem,1.05vw,1.18rem);line-height:1.8}
+.marquee-intro-copy p{font-size:clamp(16px,1.05vw,19px);line-height:1.8}
 .marquee-intro-label{font-size:clamp(.65rem,.7vw,.78rem)}
-.mv-masonry .video-tile span{font-size:clamp(.72rem,.83vw,.96rem)}
+.mv-masonry .video-tile span{font-size:clamp(13px,.83vw,16px)}
 @media(max-width:62rem){
   .marquee-intro-content{display:block}
   .marquee-intro-copy{max-width:44rem;margin-top:clamp(1.75rem,4vw,2.75rem)}
-  .marquee-intro-copy p{font-size:clamp(.98rem,1.6vw,1.12rem)}
+  .marquee-intro-copy p{font-size:clamp(15px,1.6vw,18px)}
 }
 @media(max-width:48rem){
   .marquee-intro h2{font-size:clamp(3.25rem,14vw,6rem)}
-  .marquee-intro-copy p{font-size:clamp(.98rem,2.25vw,1.08rem);line-height:1.78}
+  .marquee-intro-copy p{font-size:clamp(15px,2.25vw,17px);line-height:1.78}
   .marquee .marquee-label{display:none}
   .marquee .mv-masonry{margin-top:1.5rem}
-  .mv-masonry .video-tile span{font-size:clamp(.78rem,1.8vw,.92rem)}
+  .mv-masonry .video-tile span{font-size:clamp(13px,1.8vw,15px)}
 }
