@@ -638,3 +638,23 @@ html{font-size:clamp(.875rem,.76vw,1rem);overflow-x:clip}body,#root,main{inline-
 .jiangxing-poster:hover img,.jiangxing-poster:focus-visible img{transform:scale(1.012)}
 @media(max-width:62rem){.jiangxing-showcase-head{grid-template-columns:1fr;padding:1.4rem;gap:1.4rem}.jiangxing-showcase-head p{max-inline-size:52rem}.jiangxing-showcase-grid{grid-template-columns:1fr}.jiangxing-video,.jiangxing-poster{aspect-ratio:16/9;min-block-size:0}.jiangxing-poster{max-inline-size:none}}
 @media(max-width:48rem){.jiangxing-showcase{padding-block:5.25rem 5.75rem}.jiangxing-showcase h2{font-size:clamp(2.35rem,10.5vw,3.7rem)}.jiangxing-showcase h2 em{font-size:.68em}.jiangxing-showcase-head p{padding-left:1rem;font-size:1rem;line-height:1.72}.jiangxing-video,.jiangxing-poster{aspect-ratio:16/10;min-block-size:0}.jiangxing-video-action strong,.jiangxing-poster strong{font-size:1.25rem}}
+/* Give the music MV chapter larger, easier-to-scan artwork and copy. */
+.marquee .mv-masonry{margin-top:clamp(1.25rem,2.4vw,2.5rem)}
+.marquee-intro{margin-bottom:clamp(1.5rem,2.7vw,2.75rem)}
+.marquee-intro-content{grid-template-columns:minmax(0,1fr) minmax(24rem,.72fr);gap:clamp(2.25rem,5vw,5.5rem)}
+.marquee-intro-copy{max-width:40rem}
+.marquee-intro-copy p{font-size:clamp(1rem,1.05vw,1.18rem);line-height:1.8}
+.marquee-intro-label{font-size:clamp(.65rem,.7vw,.78rem)}
+.mv-masonry .video-tile span{font-size:clamp(.72rem,.83vw,.96rem)}
+@media(max-width:62rem){
+  .marquee-intro-content{display:block}
+  .marquee-intro-copy{max-width:44rem;margin-top:clamp(1.75rem,4vw,2.75rem)}
+  .marquee-intro-copy p{font-size:clamp(.98rem,1.6vw,1.12rem)}
+}
+@media(max-width:48rem){
+  .marquee-intro h2{font-size:clamp(3.25rem,14vw,6rem)}
+  .marquee-intro-copy p{font-size:clamp(.98rem,2.25vw,1.08rem);line-height:1.78}
+  .marquee .marquee-label{display:none}
+  .marquee .mv-masonry{margin-top:1.5rem}
+  .mv-masonry .video-tile span{font-size:clamp(.78rem,1.8vw,.92rem)}
+}
