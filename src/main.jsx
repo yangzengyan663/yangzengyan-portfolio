@@ -70,11 +70,12 @@ const cultureProjects = [
   },
 ]
 const fifiGiaProjects = [
-  { label: 'FIFI_GIA / FILM 01', video: '/videos/fifi-gia/ip-1-compatible.mp4' },
+  { label: 'FIFI_GIA / FILM 01', video: '/videos/fifi-gia/ip-1-compatible.mp4', galleryNumber: '01' },
   { label: 'FIFI_GIA / FILM 02', video: '/videos/fifi-gia/ip-2.mp4', cover: '/images/fifi-gia-film-2-cover.webp' },
-  { label: 'FIFI_GIA / FILM 03', video: '/videos/fifi-gia/ip-3.mp4' },
+  { label: 'FIFI_GIA / FILM 03', video: '/videos/fifi-gia/ip-3.mp4', galleryNumber: '03' },
   { label: 'FIFI_GIA / FILM 04', video: '/videos/fifi-gia/ip-4.mp4', cover: '/images/fifi-gia-film-4-cover.webp' },
 ]
+const fifiGiaGalleryProjects = fifiGiaProjects.filter(project => project.galleryNumber)
 const advertisingProjects = [
   { label: '花露水宣传片', video: '/videos/advertising-series/ad-4.mp4', cover: '/images/advertising-series/ad-4-cover.webp' },
   { label: '社媒-136-2D视频-SeaArt', video: '/videos/advertising-series/ad-1.mp4', cover: '/images/advertising-series/ad-1-cover.webp' },
@@ -297,7 +298,7 @@ function Projects() {
   </section>
 }function FifiGia() {
   const [selectedProject, setSelectedProject] = useState(null)
-  return <section id="fifi-gia" className="fifi-gia"><div className="fifi-gia-heading"><div className="fifi-gia-kicker"><span>03 / IP ACCOUNT</span><span>CHARACTER 璺?CONTENT 璺?VISUAL WORLD</span></div><div className="fifi-gia-heading-content"><h2><span>fifi_Gia</span><em>IP &#x8d26;&#x53f7;</em></h2><div className="fifi-gia-copy"><span>&#x9879;&#x76ee;&#x4ecb;&#x7ecd; / IP ACCOUNT</span><p>fifi_Gia &#x662f;&#x4ee5;&#x89d2;&#x8272;&#x4eba;&#x8bbe;&#x4e0e;&#x89c6;&#x89c9;&#x98ce;&#x683c;&#x4e3a;&#x6838;&#x5fc3;&#x7684; AI IP &#x8d26;&#x53f7;&#x7cfb;&#x5217;&#x5b9e;&#x8df5;&#x3002;&#x901a;&#x8fc7;&#x8fde;&#x7eed;&#x6027;&#x7684;&#x5185;&#x5bb9;&#x521b;&#x4f5c;&#xff0c;&#x5c06;&#x4eba;&#x7269;&#x5f62;&#x8c61;&#x3001;&#x77ed;&#x7247;&#x53d9;&#x4e8b;&#x4e0e;&#x793e;&#x4ea4;&#x5a92;&#x4f53;&#x89c6;&#x89c9;&#x878d;&#x5408;&#xff0c;&#x5efa;&#x7acb;&#x5177;&#x6709;&#x8bc6;&#x522b;&#x5ea6;&#x7684; IP &#x5185;&#x5bb9;&#x4e16;&#x754c;&#x3002;</p></div></div></div><CircularGallery items={fifiGiaProjects} bend={3} textColor="#ffffff" borderRadius={0.1} scrollEase={0.09} font="bold 30px Orbitron" scrollSpeed={1.3} onItemClick={setSelectedProject} />{selectedProject && <ShortDramaModal project={selectedProject} onClose={() => setSelectedProject(null)} />}</section>
+  return <section id="fifi-gia" className="fifi-gia"><div className="fifi-gia-heading"><div className="fifi-gia-kicker"><span>03 / IP ACCOUNT</span><span>CHARACTER 璺?CONTENT 璺?VISUAL WORLD</span></div><div className="fifi-gia-heading-content"><h2><span>fifi_Gia</span><em>IP &#x8d26;&#x53f7;</em></h2><div className="fifi-gia-copy"><span>&#x9879;&#x76ee;&#x4ecb;&#x7ecd; / IP ACCOUNT</span><p>fifi_Gia &#x662f;&#x4ee5;&#x89d2;&#x8272;&#x4eba;&#x8bbe;&#x4e0e;&#x89c6;&#x89c9;&#x98ce;&#x683c;&#x4e3a;&#x6838;&#x5fc3;&#x7684; AI IP &#x8d26;&#x53f7;&#x7cfb;&#x5217;&#x5b9e;&#x8df5;&#x3002;&#x901a;&#x8fc7;&#x8fde;&#x7eed;&#x6027;&#x7684;&#x5185;&#x5bb9;&#x521b;&#x4f5c;&#xff0c;&#x5c06;&#x4eba;&#x7269;&#x5f62;&#x8c61;&#x3001;&#x77ed;&#x7247;&#x53d9;&#x4e8b;&#x4e0e;&#x793e;&#x4ea4;&#x5a92;&#x4f53;&#x89c6;&#x89c9;&#x878d;&#x5408;&#xff0c;&#x5efa;&#x7acb;&#x5177;&#x6709;&#x8bc6;&#x522b;&#x5ea6;&#x7684; IP &#x5185;&#x5bb9;&#x4e16;&#x754c;&#x3002;</p></div></div></div><CircularGallery items={fifiGiaGalleryProjects} bend={3} textColor="#ffffff" borderRadius={0.1} scrollEase={0.09} font="bold 30px Orbitron" scrollSpeed={1.3} onItemClick={setSelectedProject} />{selectedProject && <ShortDramaModal project={selectedProject} onClose={() => setSelectedProject(null)} />}</section>
 }
 function AdvertisingFilms() {
   const [selectedProject, setSelectedProject] = useState(null)
