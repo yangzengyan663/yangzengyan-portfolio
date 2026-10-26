@@ -71,9 +71,9 @@ const cultureProjects = [
 ]
 const fifiGiaProjects = [
   { label: 'FIFI_GIA / FILM 01', video: '/videos/fifi-gia/ip-1-compatible.mp4' },
-  { label: 'FIFI_GIA / FILM 02', video: '/videos/fifi-gia/ip-2.mp4' },
+  { label: 'FIFI_GIA / FILM 02', video: '/videos/fifi-gia/ip-2.mp4', cover: '/images/fifi-gia-film-2-cover.webp' },
   { label: 'FIFI_GIA / FILM 03', video: '/videos/fifi-gia/ip-3.mp4' },
-  { label: 'FIFI_GIA / FILM 04', video: '/videos/fifi-gia/ip-4.mp4' },
+  { label: 'FIFI_GIA / FILM 04', video: '/videos/fifi-gia/ip-4.mp4', cover: '/images/fifi-gia-film-4-cover.webp' },
 ]
 const advertisingProjects = [
   { label: '花露水宣传片', video: '/videos/advertising-series/ad-4.mp4', cover: '/images/advertising-series/ad-4-cover.webp' },
@@ -84,6 +84,7 @@ const advertisingProjects = [
 const finalShowcaseItems = [
   ...closingMusicProjects.map(project => ({ image: project.cover, title: project.title, href: project.video, fit: project.format.startsWith('portrait') ? 'contain' : 'cover', category: 'AI DIGITAL HUMAN / MUSIC MV' })),
   ...advertisingProjects.map(project => ({ image: project.cover, title: project.label, href: project.video, category: 'ADVERTISING / SOCIAL FILM' })),
+  ...fifiGiaProjects.filter(project => project.cover).map(project => ({ image: project.cover, title: project.label, href: project.video, category: 'FIFI_GIA / IP ACCOUNT' })),
 ]
 const seaGamesProjects = [
   { label: 'SeaGames / Official Film 01', video: '/videos/advertising-series/seagames-01.mp4', image: '/images/advertising-series/seagames-01.png', number: '01' },
@@ -310,7 +311,7 @@ function AdvertisingFilms() {
 }function FinalShowcase() {
   const [selectedProject, setSelectedProject] = useState(null)
   const openProject = item => setSelectedProject({ label: item.title, video: item.href })
-  return <section id="final-showcase" className="final-showcase"><div className="final-showcase-head"><span>06 / FINAL SHOWCASE</span><div><h2>&#x5F71;&#x50CF;<em>&#x6863;&#x6848;</em></h2><p>&#x6570;&#x5B57;&#x4EBA;&#x97F3;&#x4E50;&#x5F71;&#x50CF;&#x4E0E;&#x54C1;&#x724C;&#x793E;&#x5A92;&#x77ED;&#x7247;&#x5408;&#x96C6;&#x3002;&#x70B9;&#x51FB;&#x4EFB;&#x4E00;&#x753B;&#x9762;&#x64AD;&#x653E;&#x5B8C;&#x6574;&#x89C6;&#x9891;&#x3002;</p></div></div><div className="final-showcase-wall" style={{ height: 600 }}><DriftWall items={finalShowcaseItems} columns={5} tileWidth={200} tileHeight={124} gap={16} tilt={16} turn={-8} perspective={1200} depth={120} speed={42} direction="up" variance={0.45} parallax={0.6} lift={48} fade={0.2} dim={0.65} overlayColor="#060010" radius={15} roll={0} pauseOnHover={false} grayscale={false} onItemClick={openProject} /></div><div className="final-showcase-foot"><span>09 FILMS / SELECTED ARCHIVE</span><span>CLICK TO PLAY <ArrowUpRight size={14} /></span></div>{selectedProject && <ShortDramaModal project={selectedProject} onClose={() => setSelectedProject(null)} />}</section>
+  return <section id="final-showcase" className="final-showcase"><div className="final-showcase-head"><span>06 / FINAL SHOWCASE</span><div><h2>&#x5F71;&#x50CF;<em>&#x6863;&#x6848;</em></h2><p>&#x6570;&#x5B57;&#x4EBA;&#x97F3;&#x4E50;&#x5F71;&#x50CF;&#x3001;&#x54C1;&#x724C;&#x793E;&#x5A92;&#x77ED;&#x7247;&#x4E0E; fifi_Gia IP &#x7CFB;&#x5217;&#x5408;&#x96C6;&#x3002;&#x70B9;&#x51FB;&#x4EFB;&#x4E00;&#x753B;&#x9762;&#x64AD;&#x653E;&#x5B8C;&#x6574;&#x89C6;&#x9891;&#x3002;</p></div></div><div className="final-showcase-wall" style={{ height: 600 }}><DriftWall items={finalShowcaseItems} columns={5} tileWidth={200} tileHeight={124} gap={16} tilt={16} turn={-8} perspective={1200} depth={120} speed={42} direction="up" variance={0.45} parallax={0.6} lift={48} fade={0.2} dim={0.65} overlayColor="#060010" radius={15} roll={0} pauseOnHover={false} grayscale={false} onItemClick={openProject} /></div><div className="final-showcase-foot"><span>{String(finalShowcaseItems.length).padStart(2, "0")} FILMS / SELECTED ARCHIVE</span><span>CLICK TO PLAY <ArrowUpRight size={14} /></span></div>{selectedProject && <ShortDramaModal project={selectedProject} onClose={() => setSelectedProject(null)} />}</section>
 }function Hero({ onReady }) {
   const [progress, setProgress] = useState(0)
   const [ready, setReady] = useState(false)
