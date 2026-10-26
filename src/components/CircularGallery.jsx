@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import './CircularGallery.css'
 
-const wrapDistance = (value, total) => { const half = total / 2; return ((value + half) % total + total) % total - half }
+const wrapDistance = (value, total) => { const half = total / 2; const wrapped = ((value + half) % total + total) % total - half; return total === 2 && wrapped === -half && value > 0 ? half : wrapped }
 
 export default function CircularGallery({ items = [], bend = 3, textColor = '#ffffff', borderRadius = 0.1, scrollEase = 0.09, font = 'bold 30px Orbitron', scrollSpeed = 1.3, onItemClick }) {
   const rootRef = useRef(null)
@@ -92,7 +92,7 @@ export default function CircularGallery({ items = [], bend = 3, textColor = '#ff
 
   return <div ref={rootRef} className="circular-gallery" style={{ '--circular-text': textColor, '--circular-radius': `${borderRadius}rem`, '--circular-font': font }} onWheel={handleWheel} onPointerDown={handlePointerDown} onPointerMove={handlePointerMove} onPointerUp={handlePointerUp} onPointerCancel={handlePointerUp}>
     <div className="circular-gallery-halo" /><div className="circular-gallery-track">
-      {items.map((item, index) => <button ref={element => { itemRefs.current[index] = element }} className={`circular-gallery-card ${activeIndex === index ? 'is-active' : ''}`} type="button" key={item.video} onPointerDown={event => event.stopPropagation()} onClick={event => openItem(event, item)} aria-label={`Open ${item.label} full video`}><video src={item.video} muted loop playsInline preload={isVisible ? 'auto' : 'none'} /><span className="circular-gallery-shade" /><span className="circular-gallery-card-info"><small>FIFI_GIA / 0{index + 1}</small><strong>{item.label}</strong><i>VIEW FILM &rarr;</i></span></button>)}
+      {items.map((item, index) => <button ref={element => { itemRefs.current[index] = element }} className={`circular-gallery-card ${activeIndex === index ? 'is-active' : ''}`} type="button" key={item.video} onPointerDown={event => event.stopPropagation()} onClick={event => openItem(event, item)} aria-label={`Open ${item.label} full video`}><video src={item.video} muted loop playsInline preload={isVisible ? 'auto' : 'none'} /><span className="circular-gallery-shade" /><span className="circular-gallery-card-info"><small>FIFI_GIA / {item.galleryNumber || String(index + 1).padStart(2, '0')}</small><strong>{item.label}</strong><i>VIEW FILM &rarr;</i></span></button>)}
     </div><div className="circular-gallery-counter"><span>0{activeIndex + 1}</span><i /> <span>0{items.length}</span></div><button className="circular-gallery-open" type="button" onClick={event => openItem(event, items[activeIndex])} aria-label={`Open ${items[activeIndex]?.label || 'active'} full video`}>OPEN FULL VIDEO <span>&nearr;</span></button><p className="circular-gallery-hint">SCROLL OR DRAG TO EXPLORE</p>
   </div>
 }
