@@ -658,3 +658,61 @@ html{font-size:clamp(.875rem,.76vw,1rem);overflow-x:clip}body,#root,main{inline-
   .marquee .mv-masonry{margin-top:1.5rem}
   .mv-masonry .video-tile span{font-size:clamp(13px,1.8vw,15px)}
 }
+/* Consistent project introductions across the four annotated chapters. */
+.fifi-gia-copy p,
+.advertising-copy p,
+.culture-projects-heading > p,
+.services-gallery-overview > p {
+  font-size:clamp(18px,1.25vw,22px);
+  line-height:1.85;
+  font-weight:400;
+  letter-spacing:.02em;
+  color:rgba(248,242,255,.88);
+}
+.fifi-gia-copy > span,.advertising-copy > span,.services-gallery-overview > .overview-mark {
+  font-size:12px;line-height:1.6;margin-bottom:16px;
+}
+.culture-projects-heading > p {max-inline-size:32rem}
+.fifi-gia-heading-content,.advertising-heading-content {
+  grid-template-columns:minmax(0,1fr) minmax(24rem,.8fr);
+  gap:clamp(2rem,5vw,6rem);
+}
+.fifi-gia h2 em {white-space:normal}
+/* A static pair of films, with no wheel/drag carousel or scroll transforms. */
+#fifi-gia,#fifi-gia > [data-cinematic-layer] {
+  transform:none!important;filter:none!important;opacity:1!important;
+  transition:none!important;will-change:auto;
+}
+#fifi-gia::after {animation:none;transform:none}
+.fifi-static-gallery {
+  display:grid;grid-template-columns:repeat(2,minmax(0,1fr));
+  max-inline-size:var(--content-max);margin:clamp(2.5rem,4vw,4.5rem) auto 0;
+  gap:clamp(18px,2vw,32px);
+}
+.fifi-static-card {
+  position:relative;display:block;min-width:0;width:100%;padding:0;
+  aspect-ratio:16/10;overflow:hidden;text-align:left;color:#fff;
+  border:1px solid rgba(230,201,255,.25);border-radius:18px;background:#09070e;cursor:pointer;
+}
+.fifi-static-card > img {display:block;width:100%;height:100%;object-fit:cover}
+.fifi-static-info {
+  position:absolute;inset:0;display:flex;flex-direction:column;justify-content:flex-end;
+  align-items:flex-start;gap:10px;padding:clamp(20px,2vw,32px);
+  background:linear-gradient(180deg,transparent 35%,rgba(5,3,10,.92));
+}
+.fifi-static-info small {font-size:12px;letter-spacing:.12em;color:#e7c9ff}
+.fifi-static-info strong {font-size:clamp(20px,1.6vw,28px);line-height:1.3}
+.fifi-static-info > span {display:flex;align-items:center;gap:8px;font-size:14px}
+.fifi-static-card:hover {border-color:#d7afff}
+.fifi-static-card:focus-visible {outline:3px solid #d7afff;outline-offset:5px}
+@media(max-width:62rem) {
+  .fifi-gia-heading-content,.advertising-heading-content {display:block}
+  .fifi-gia-copy,.advertising-copy {max-inline-size:44rem}
+}
+@media(max-width:48rem) {
+  .fifi-gia-copy p,.advertising-copy p,.culture-projects-heading > p,.services-gallery-overview > p {
+    font-size:17px;line-height:1.85;
+  }
+  .fifi-static-gallery {grid-template-columns:1fr;gap:20px}
+  .fifi-static-card {aspect-ratio:16/10}
+}

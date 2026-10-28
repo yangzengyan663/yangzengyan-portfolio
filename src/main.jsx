@@ -4,7 +4,6 @@ import { createRoot } from 'react-dom/client'
 import { ArrowUpRight, Clapperboard, Lightbulb, Rocket, Scissors, Sparkles, UserRound } from 'lucide-react'
 import BorderGlow from './components/BorderGlow'
 import AccordionGallery from './components/AccordionGallery'
-import CircularGallery from './components/CircularGallery'
 import WebThreads from './components/WebThreads'
 import LightPillar from './components/LightPillar'
 import Masonry from './components/Masonry'
@@ -283,7 +282,7 @@ function Projects() {
   const openImage = (project, image, imageNumber) => setSelectedImage({ label: `${project.category} / VISUAL ${imageNumber}`, image })
 
   return <section id="projects" className="projects culture-projects">
-    <header className="culture-projects-heading"><span>SELECTED WORK / CULTURAL VISUAL SERIES</span><h2>&#x4e2d;&#x56fd;&#x98ce;<br /><em>&#x4f20;&#x7edf;&#x6587;&#x5316;&#x7cfb;&#x5217;</em></h2><p>Two AI visual projects that translate traditional stories, materials, and cultural imagination into contemporary moving images.</p></header>
+    <header className="culture-projects-heading"><span>SELECTED WORK / CULTURAL VISUAL SERIES</span><h2>&#x4e2d;&#x56fd;&#x98ce;<br /><em>&#x4f20;&#x7edf;&#x6587;&#x5316;&#x7cfb;&#x5217;</em></h2><p>以两部 AI 视觉作品为载体，将传统故事、材质美学与文化想象转化为当代动态影像。</p></header>
     <div className="culture-project-list">{cultureProjects.map(project => <article className="culture-project" key={project.number}>
       <div className="culture-project-intro"><span>{project.number}</span><div><small>{project.category}</small><h3 dangerouslySetInnerHTML={{ __html: project.title }} />{project.award && <p className="culture-project-award"><span>AWARD / SELECTED RECOGNITION</span><em dangerouslySetInnerHTML={{ __html: project.award }} /></p>}<p>AI VISUAL DEVELOPMENT / MOTION / EDIT</p></div><button onClick={() => openVideo(project)}>VIEW FILM <ArrowUpRight size={17} /></button></div>
       <div className={`culture-project-media culture-project-media-${project.number}`}>
@@ -298,7 +297,7 @@ function Projects() {
   </section>
 }function FifiGia() {
   const [selectedProject, setSelectedProject] = useState(null)
-  return <section id="fifi-gia" className="fifi-gia"><div className="fifi-gia-heading"><div className="fifi-gia-kicker"><span>03 / IP ACCOUNT</span><span>CHARACTER 璺?CONTENT 璺?VISUAL WORLD</span></div><div className="fifi-gia-heading-content"><h2><span>fifi_Gia</span><em>IP &#x8d26;&#x53f7;</em></h2><div className="fifi-gia-copy"><span>&#x9879;&#x76ee;&#x4ecb;&#x7ecd; / IP ACCOUNT</span><p>fifi_Gia &#x662f;&#x4ee5;&#x89d2;&#x8272;&#x4eba;&#x8bbe;&#x4e0e;&#x89c6;&#x89c9;&#x98ce;&#x683c;&#x4e3a;&#x6838;&#x5fc3;&#x7684; AI IP &#x8d26;&#x53f7;&#x7cfb;&#x5217;&#x5b9e;&#x8df5;&#x3002;&#x901a;&#x8fc7;&#x8fde;&#x7eed;&#x6027;&#x7684;&#x5185;&#x5bb9;&#x521b;&#x4f5c;&#xff0c;&#x5c06;&#x4eba;&#x7269;&#x5f62;&#x8c61;&#x3001;&#x77ed;&#x7247;&#x53d9;&#x4e8b;&#x4e0e;&#x793e;&#x4ea4;&#x5a92;&#x4f53;&#x89c6;&#x89c9;&#x878d;&#x5408;&#xff0c;&#x5efa;&#x7acb;&#x5177;&#x6709;&#x8bc6;&#x522b;&#x5ea6;&#x7684; IP &#x5185;&#x5bb9;&#x4e16;&#x754c;&#x3002;</p></div></div></div><CircularGallery items={fifiGiaGalleryProjects} bend={3} textColor="#ffffff" borderRadius={0.1} scrollEase={0.09} font="bold 30px Orbitron" scrollSpeed={1.3} onItemClick={setSelectedProject} />{selectedProject && <ShortDramaModal project={selectedProject} onClose={() => setSelectedProject(null)} />}</section>
+  return <section id="fifi-gia" className="fifi-gia"><div className="fifi-gia-heading"><div className="fifi-gia-kicker"><span>03 / IP ACCOUNT</span><span>CHARACTER 璺?CONTENT 璺?VISUAL WORLD</span></div><div className="fifi-gia-heading-content"><h2><span>fifi_Gia</span><em>IP &#x8d26;&#x53f7;&#x8fd0;&#x8425;</em></h2><div className="fifi-gia-copy"><span>&#x9879;&#x76ee;&#x4ecb;&#x7ecd; / IP ACCOUNT</span><p>fifi_Gia &#x662f;&#x4ee5;&#x89d2;&#x8272;&#x4eba;&#x8bbe;&#x4e0e;&#x89c6;&#x89c9;&#x98ce;&#x683c;&#x4e3a;&#x6838;&#x5fc3;&#x7684; AI IP &#x8d26;&#x53f7;&#x7cfb;&#x5217;&#x5b9e;&#x8df5;&#x3002;&#x901a;&#x8fc7;&#x8fde;&#x7eed;&#x6027;&#x7684;&#x5185;&#x5bb9;&#x521b;&#x4f5c;&#xff0c;&#x5c06;&#x4eba;&#x7269;&#x5f62;&#x8c61;&#x3001;&#x77ed;&#x7247;&#x53d9;&#x4e8b;&#x4e0e;&#x793e;&#x4ea4;&#x5a92;&#x4f53;&#x89c6;&#x89c9;&#x878d;&#x5408;&#xff0c;&#x5efa;&#x7acb;&#x5177;&#x6709;&#x8bc6;&#x522b;&#x5ea6;&#x7684; IP &#x5185;&#x5bb9;&#x4e16;&#x754c;&#x3002;</p></div></div></div><div className="fifi-static-gallery">{fifiGiaGalleryProjects.map(project => <button className="fifi-static-card" type="button" key={project.video} onClick={() => setSelectedProject(project)} aria-label={`Open ${project.label} full video`}><img src={`/images/fifi-gia-film-${Number(project.galleryNumber)}-cover.webp`} alt={`${project.label} 封面`} loading="lazy" /><span className="fifi-static-info"><small>FIFI_GIA / {project.galleryNumber}</small><strong>{project.label}</strong><span>播放完整视频 <ArrowUpRight size={20} /></span></span></button>)}</div>{selectedProject && <ShortDramaModal project={selectedProject} onClose={() => setSelectedProject(null)} />}</section>
 }
 function AdvertisingFilms() {
   const [selectedProject, setSelectedProject] = useState(null)
