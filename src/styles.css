@@ -724,3 +724,7 @@ html{font-size:clamp(.875rem,.76vw,1rem);overflow-x:clip}body,#root,main{inline-
  .services-gallery-heading h2 > span {margin-left:-.35em}
  .final-showcase-head h2 {font-size:clamp(2.3rem,10vw,4.8rem)}
 }
+/* Make competition achievements easy to scan. */
+.culture-project-award em {font-size:clamp(16px,1.02vw,19px);font-weight:600;line-height:1.8;color:rgba(250,245,236,.9)}
+.culture-project-award .award-highlight {font-size:1.08em;font-weight:800;color:#ffcf80;background:rgba(208,151,68,.15);border-radius:.2em;padding:0 .18em;box-decoration-break:clone;-webkit-box-decoration-break:clone}
+@media(max-width:48rem){.culture-project-award em {font-size:16px;line-height:1.75}}
