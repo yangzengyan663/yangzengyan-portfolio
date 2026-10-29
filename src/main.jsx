@@ -70,16 +70,16 @@ const cultureProjects = [
 ]
 const fifiGiaProjects = [
   { label: 'FIFI_GIA / FILM 01', video: '/videos/fifi-gia/ip-1-compatible.mp4', galleryNumber: '01' },
-  { label: 'FIFI_GIA / FILM 02', video: '/videos/fifi-gia/ip-2.mp4', cover: '/images/fifi-gia-film-2-cover.webp' },
+  { label: '黑白造境｜时装短片', video: '/videos/fifi-gia/ip-2.mp4', cover: '/images/fifi-gia-film-2-cover.webp' },
   { label: 'FIFI_GIA / FILM 03', video: '/videos/fifi-gia/ip-3.mp4', galleryNumber: '03' },
-  { label: 'FIFI_GIA / FILM 04', video: '/videos/fifi-gia/ip-4.mp4', cover: '/images/fifi-gia-film-4-cover.webp' },
+  { label: '色彩肖像｜时尚短片', video: '/videos/fifi-gia/ip-4.mp4', cover: '/images/fifi-gia-film-4-cover.webp' },
 ]
 const fifiGiaGalleryProjects = fifiGiaProjects.filter(project => project.galleryNumber)
 const advertisingProjects = [
-  { label: '花露水宣传片', video: '/videos/advertising-series/ad-4.mp4', cover: '/images/advertising-series/ad-4-cover.webp' },
-  { label: '社媒-136-2D视频-SeaArt', video: '/videos/advertising-series/ad-1.mp4', cover: '/images/advertising-series/ad-1-cover.webp' },
-  { label: '市场部社媒用-131-2D视频-SeaArt(3)(1)', video: '/videos/advertising-series/ad-2.mp4', cover: '/images/advertising-series/ad-2-cover.webp' },
-  { label: '社媒1', video: '/videos/advertising-series/ad-3.mp4', cover: '/images/advertising-series/ad-3-cover.webp' },
+  { label: '六神花露水｜清凉驱蚊', video: '/videos/advertising-series/ad-4.mp4', cover: '/images/advertising-series/ad-4-cover.webp' },
+  { label: '小熊猫的海岛假日', video: '/videos/advertising-series/ad-1.mp4', cover: '/images/advertising-series/ad-1-cover.webp' },
+  { label: 'SeaArt｜分层创意编辑', video: '/videos/advertising-series/ad-2.mp4', cover: '/images/advertising-series/ad-2-cover.webp' },
+  { label: '赛博角色｜从设定到场景', video: '/videos/advertising-series/ad-3.mp4', cover: '/images/advertising-series/ad-3-cover.webp' },
 ]
 const finalShowcaseItems = [
   ...closingMusicProjects.map(project => ({ image: project.cover, title: project.title, href: project.video, fit: project.format.startsWith('portrait') ? 'contain' : 'cover', category: 'AI DIGITAL HUMAN / MUSIC MV' })),
