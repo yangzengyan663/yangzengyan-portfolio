@@ -728,3 +728,12 @@ html{font-size:clamp(.875rem,.76vw,1rem);overflow-x:clip}body,#root,main{inline-
 .culture-project-award em {font-size:clamp(16px,1.02vw,19px);font-weight:600;line-height:1.8;color:rgba(250,245,236,.9)}
 .culture-project-award .award-highlight {font-size:1.08em;font-weight:800;color:#ffcf80;background:rgba(208,151,68,.15);border-radius:.2em;padding:0 .18em;box-decoration-break:clone;-webkit-box-decoration-break:clone}
 @media(max-width:48rem){.culture-project-award em {font-size:16px;line-height:1.75}}
+/* Balanced MV collection and emphasis on published work. */
+.mv-film-grid {display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:clamp(14px,1.5vw,24px);width:min(106rem,calc(100% - 2 * var(--page-gutter)));margin:clamp(1.25rem,2.4vw,2.5rem) auto 0}
+.mv-film-grid .video-tile {grid-column:span 2;width:100%!important;min-width:0;aspect-ratio:16/9!important}
+.mv-film-grid .video-tile:nth-child(n+4) {grid-column:span 3}
+.mv-film-grid .video-tile span {font-size:clamp(13px,.9vw,16px)}
+.seagames-live-highlight {color:#ffcf80;font-weight:800;background:rgba(208,151,68,.15);padding:0 .18em;border-radius:.2em;box-decoration-break:clone;-webkit-box-decoration-break:clone}
+.seagames-feature-side span {font-size:clamp(12px,.8vw,15px);color:rgba(255,245,255,.88);letter-spacing:.04em}
+@media(max-width:70rem){.mv-film-grid{grid-template-columns:repeat(4,minmax(0,1fr))}.mv-film-grid .video-tile:nth-child(n+4){grid-column:span 2}.mv-film-grid .video-tile:last-child{grid-column:2 / span 2}}
+@media(max-width:35rem){.mv-film-grid{grid-template-columns:1fr}.mv-film-grid .video-tile,.mv-film-grid .video-tile:nth-child(n+4),.mv-film-grid .video-tile:last-child{grid-column:1}}
