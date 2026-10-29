@@ -25,7 +25,8 @@ const videos = [
   { title: 'TJAX 02', format: 'landscape', video: '/videos/digital-human-series/tjax-02.mp4', cover: '/images/digital-human-series/tjax-02.png' },
 ]
 const closingVideoTitles = new Set(['LUNA', 'SERAPHINA', 'MARCUS SAINT 03', 'MILO', 'SOREN'])
-const musicMvProjects = videos.filter(project => !closingVideoTitles.has(project.title))
+const musicMvOrder = ['TJAX 02', 'MARCUS SAINT 02', 'OLILA', 'TJAX', 'MARCUS SAINT 01']
+const musicMvProjects = musicMvOrder.map(title => videos.find(project => project.title === title)).filter(Boolean)
 const closingMusicProjects = videos.filter(project => closingVideoTitles.has(project.title))
 const services = [
   ['01', '3D MODELING', 'Creation of detailed objects, characters, or environments tailored to specific client needs, ideal for games, products, and visualizations.'],
