@@ -52,7 +52,7 @@ const cupPeopleProjects = [
 const cultureProjects = [
   {
     number: '01',
-    title: '&#x91d1;&#x7f2e;',
+    title: '&#x300a;&#x91d1;&#x7f2e;&#x300b;',
     category: 'CHINESE CULTURAL HERITAGE',
     award: '&#x521B;&#x4F5C;&#x4F5C;&#x54C1;&#x300A;&#x91D1;&#x7F2E;&#x300B;&#xFF0C;&#x53C2;&#x52A0;&#x6559;&#x80B2;&#x90E8;&#x9AD8;&#x6559;&#x5B66;&#x4F1A;&#x5B66;&#x79D1;&#x7ADE;&#x8D5B;&#x6392;&#x884C;&#x699C;&#x8D5B;&#x9879;&#x2014;&#x2014;&#x7B2C;&#x4E8C;&#x5341;&#x5C4A;&#x4E2D;&#x56FD;&#x597D;&#x521B;&#x610F;&#x5168;&#x56FD;&#x6570;&#x5B57;&#x827A;&#x672F;&#x8BBE;&#x8BA1;&#x5927;&#x8D5B;&#xFF0C;&#x65A9;&#x83B7;&#x672C;&#x79D1;&#x7EC4;&#x4E2D;&#x56FD;&#x98CE;&#x4F20;&#x7EDF;&#x6587;&#x5316;&#x7C7B;&#x5168;&#x56FD;&#x603B;&#x51B3;&#x8D5B;&#x4E09;&#x7B49;&#x5956;&#x3002;',
     video: '/videos/chinese-culture/jinshan.mp4',
@@ -60,7 +60,7 @@ const cultureProjects = [
   },
   {
     number: '02',
-    title: '&#x8ff7;&#x96fe;&#x4e2d;&#x7684;&#x53e4;&#x8700;',
+    title: '&#x300a;&#x8ff7;&#x96fe;&#x4e2d;&#x7684;&#x53e4;&#x8700;&#x300b;',
     category: 'ANCIENT SHU IN THE MIST',
     award: '&#x6570;&#x5B57;AIGC&#x827A;&#x672F;&#x4F5C;&#x54C1;&#x300A;&#x8FF7;&#x96FE;&#x4E2D;&#x7684;&#x53E4;&#x8700;&#x300B;&#xFF0C;&#x53C2;&#x4E0E;&#x9996;&#x5C4A;AIGC ART CN&#x4E2D;&#x56FD;&#x6570;&#x5B57;&#x6F6E;&#x6D41;&#x827A;&#x672F;&#x521B;&#x4F5C;&#x5927;&#x8D5B;&#xFF0C;&#x6210;&#x529F;&#x83B7;&#x5F97;&#x5165;&#x56F4;&#x5609;&#x5956;&#xFF0C;&#x4F5C;&#x54C1;&#x4EE5;&#x53E4;&#x8700;&#x6587;&#x5316;&#x4E3A;&#x521B;&#x4F5C;&#x6838;&#x5FC3;&#xFF0C;&#x878D;&#x5408;AI&#x6570;&#x5B57;&#x89C6;&#x89C9;&#x521B;&#x4F5C;&#x624B;&#x6CD5;&#x3002;',
     video: '/videos/chinese-culture/new-li-bai.mp4',
@@ -311,7 +311,7 @@ function AdvertisingFilms() {
 }function FinalShowcase() {
   const [selectedProject, setSelectedProject] = useState(null)
   const openProject = item => setSelectedProject({ label: item.title, video: item.href })
-  return <section id="final-showcase" className="final-showcase"><div className="final-showcase-head"><span>06 / FINAL SHOWCASE</span><div><h2>&#x5F71;&#x50CF;<em>&#x6863;&#x6848;</em></h2><p>&#x6570;&#x5B57;&#x4EBA;&#x97F3;&#x4E50;&#x5F71;&#x50CF;&#x3001;&#x54C1;&#x724C;&#x793E;&#x5A92;&#x77ED;&#x7247;&#x4E0E; fifi_Gia IP &#x7CFB;&#x5217;&#x5408;&#x96C6;&#x3002;&#x70B9;&#x51FB;&#x4EFB;&#x4E00;&#x753B;&#x9762;&#x64AD;&#x653E;&#x5B8C;&#x6574;&#x89C6;&#x9891;&#x3002;</p></div></div><div className="final-showcase-wall" style={{ height: 600 }}><DriftWall items={finalShowcaseItems} columns={5} tileWidth={200} tileHeight={124} gap={16} tilt={16} turn={-8} perspective={1200} depth={120} speed={42} direction="up" variance={0.45} parallax={0.6} lift={48} fade={0.2} dim={0.65} overlayColor="#060010" radius={15} roll={0} pauseOnHover={false} grayscale={false} onItemClick={openProject} /></div><div className="final-showcase-foot"><span>{String(finalShowcaseItems.length).padStart(2, "0")} FILMS / SELECTED ARCHIVE</span><span>CLICK TO PLAY <ArrowUpRight size={14} /></span></div>{selectedProject && <ShortDramaModal project={selectedProject} onClose={() => setSelectedProject(null)} />}</section>
+  return <section id="final-showcase" className="final-showcase"><div className="final-showcase-head"><span>06 / FINAL SHOWCASE</span><div><h2>更多<em>影像作品</em></h2><p>其他数字人音乐影像、品牌与社媒短片，以及 fifi_Gia IP 账号内容。点击作品可观看完整视频。</p></div></div><div className="final-showcase-wall" style={{ height: 600 }}><DriftWall items={finalShowcaseItems} columns={5} tileWidth={200} tileHeight={124} gap={16} tilt={16} turn={-8} perspective={1200} depth={120} speed={42} direction="up" variance={0.45} parallax={0.6} lift={48} fade={0.2} dim={0.65} overlayColor="#060010" radius={15} roll={0} pauseOnHover={false} grayscale={false} onItemClick={openProject} /></div><div className="final-showcase-foot"><span>{String(finalShowcaseItems.length).padStart(2, "0")} FILMS / SELECTED ARCHIVE</span><span>CLICK TO PLAY <ArrowUpRight size={14} /></span></div>{selectedProject && <ShortDramaModal project={selectedProject} onClose={() => setSelectedProject(null)} />}</section>
 }function Hero({ onReady }) {
   const [progress, setProgress] = useState(0)
   const [ready, setReady] = useState(false)

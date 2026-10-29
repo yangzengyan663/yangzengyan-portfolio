@@ -716,3 +716,11 @@ html{font-size:clamp(.875rem,.76vw,1rem);overflow-x:clip}body,#root,main{inline-
   .fifi-static-gallery {grid-template-columns:1fr;gap:20px}
   .fifi-static-card {aspect-ratio:16/10}
 }
+/* Align the short-drama title and keep the archive heading readable on small screens. */
+.services-gallery-heading h2 {align-self:start}
+.services-gallery-heading h2 > span {margin-left:-.45em}
+.final-showcase-head h2 {font-size:clamp(2.5rem,5.1vw,6rem)}
+@media(max-width:48rem){
+ .services-gallery-heading h2 > span {margin-left:-.35em}
+ .final-showcase-head h2 {font-size:clamp(2.3rem,10vw,4.8rem)}
+}
