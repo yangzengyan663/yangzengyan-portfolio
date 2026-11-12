@@ -737,3 +737,7 @@ html{font-size:clamp(.875rem,.76vw,1rem);overflow-x:clip}body,#root,main{inline-
 .seagames-feature-side span {font-size:clamp(12px,.8vw,15px);color:rgba(255,245,255,.88);letter-spacing:.04em}
 @media(max-width:70rem){.mv-film-grid{grid-template-columns:repeat(4,minmax(0,1fr))}.mv-film-grid .video-tile:nth-child(n+4){grid-column:span 2}.mv-film-grid .video-tile:last-child{grid-column:2 / span 2}}
 @media(max-width:35rem){.mv-film-grid{grid-template-columns:1fr}.mv-film-grid .video-tile,.mv-film-grid .video-tile:nth-child(n+4),.mv-film-grid .video-tile:last-child{grid-column:1}}
+/* Playback remains interactive while buffering; never cover native controls. */
+.video-buffering-status{position:absolute;z-index:2;top:18px;left:50%;transform:translateX(-50%);padding:9px 16px;border:1px solid #ccb2ed44;border-radius:999px;background:#10091ce6;color:#eee5fa;font-size:13px;pointer-events:none;white-space:nowrap}
+.short-drama-error>div{display:flex;gap:14px;align-items:center;pointer-events:auto}.short-drama-error button{padding:10px 13px;border:1px solid #d8b8ff73;border-radius:999px;color:#fff}
+.video-player-open .drift-wall-track,.video-player-open .cinematic-atmosphere{animation-play-state:paused!important}

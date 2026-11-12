@@ -5,24 +5,26 @@ import { ArrowUpRight, Clapperboard, Lightbulb, Rocket, Scissors, Sparkles, User
 import BorderGlow from './components/BorderGlow'
 import AccordionGallery from './components/AccordionGallery'
 import WebThreads from './components/WebThreads'
-import LightPillar from './components/LightPillar'
+import LightPillar from './DeferredLightPillar'
 import ProfileCard from './components/ProfileCard'
 import StrokeText from './components/StrokeText'
 import FoldText from './components/FoldText'
 import DriftWall from './DriftWall'
+import PreviewVideo from './PreviewVideo'
+import { playbackUrl, previewPoster, setPlayerOpen, thumbnailUrl } from './media'
 import './styles.css'
 
 const videos = [
-  { title: 'LUNA', format: 'portrait-tall', video: '/videos/digital-human-series/luna.mp4', cover: '/images/digital-human-series/luna.jpg' },
-  { title: 'MARCUS SAINT 01', format: 'landscape', video: '/videos/digital-human-series/marcus-saint-01.mp4', cover: '/images/digital-human-series/marcus-saint-01.png' },
-  { title: 'MARCUS SAINT 02', format: 'landscape', video: '/videos/digital-human-series/marcus-saint-02.mp4', cover: '/images/digital-human-series/marcus-saint-02.png' },
-  { title: 'MARCUS SAINT 03', format: 'portrait-standard', video: '/videos/digital-human-series/marcus-saint-03.mp4', cover: '/images/digital-human-series/marcus-saint-03.png' },
-  { title: 'MILO', format: 'landscape', video: '/videos/digital-human-series/milo.mp4', cover: '/images/digital-human-series/milo.png' },
-  { title: 'OLILA', format: 'landscape', video: '/videos/digital-human-series/olila.mp4', cover: '/images/digital-human-series/olila.png' },
-  { title: 'SERAPHINA', format: 'portrait-tall', video: '/videos/digital-human-series/seraphina.mp4', cover: '/images/digital-human-series/seraphina.jpg' },
-  { title: 'SOREN', format: 'landscape', video: '/videos/digital-human-series/soren.mp4', cover: '/images/digital-human-series/soren.jpg' },
-  { title: 'TJAX', format: 'landscape', video: '/videos/digital-human-series/tjax.mp4', cover: '/images/digital-human-series/tjax.png' },
-  { title: 'TJAX 02', format: 'landscape', video: '/videos/digital-human-series/tjax-02.mp4', cover: '/images/digital-human-series/tjax-02.png' },
+  { title: 'LUNA', format: 'portrait-tall', video: '/videos/digital-human-series/luna.mp4', cover: '/media-previews/mv-luna.webp' },
+  { title: 'MARCUS SAINT 01', format: 'landscape', video: '/videos/digital-human-series/marcus-saint-01.mp4', cover: '/media-previews/mv-marcus-saint-01.webp' },
+  { title: 'MARCUS SAINT 02', format: 'landscape', video: '/videos/digital-human-series/marcus-saint-02.mp4', cover: '/media-previews/mv-marcus-saint-02.webp' },
+  { title: 'MARCUS SAINT 03', format: 'portrait-standard', video: '/videos/digital-human-series/marcus-saint-03.mp4', cover: '/media-previews/mv-marcus-saint-03.webp' },
+  { title: 'MILO', format: 'landscape', video: '/videos/digital-human-series/milo.mp4', cover: '/media-previews/mv-milo.webp' },
+  { title: 'OLILA', format: 'landscape', video: '/videos/digital-human-series/olila.mp4', cover: '/media-previews/mv-olila.webp' },
+  { title: 'SERAPHINA', format: 'portrait-tall', video: '/videos/digital-human-series/seraphina.mp4', cover: '/media-previews/mv-seraphina.webp' },
+  { title: 'SOREN', format: 'landscape', video: '/videos/digital-human-series/soren.mp4', cover: '/media-previews/mv-soren.webp' },
+  { title: 'TJAX', format: 'landscape', video: '/videos/digital-human-series/tjax.mp4', cover: '/media-previews/mv-tjax.webp' },
+  { title: 'TJAX 02', format: 'landscape', video: '/videos/digital-human-series/tjax-02.mp4', cover: '/media-previews/mv-tjax-02.webp' },
 ]
 const closingVideoTitles = new Set(['LUNA', 'SERAPHINA', 'MARCUS SAINT 03', 'MILO', 'SOREN'])
 const musicMvOrder = ['TJAX 02', 'MARCUS SAINT 02', 'OLILA', 'TJAX', 'MARCUS SAINT 01']
@@ -97,119 +99,60 @@ const jiangxingProject = {
   description: '\u5728\u4e00\u5ea7\u60ac\u4e8e\u672a\u6765\u90fd\u5e02\u4e4b\u4e0a\u7684\u65e0\u4eba\u5a5a\u793c\u53f0\uff0c\u4e00\u5bf9\u5e76\u975e\u604b\u4eba\u7684\u642d\u6863\u4f2a\u88c5\u6210\u65b0\u5a5a\u592b\u59bb\uff0c\u8bf1\u6355\u4e13\u95e8\u541e\u566c\u5a5a\u793c\u60c5\u7eea\u7684\u5de8\u578b\u673a\u68b0\u602a\u7269\u201c\u559c\u566c\u8005\u201d\u3002\u5f53\u6b66\u529b\u9677\u5165\u56f0\u5883\uff0c\u4ed6\u4eec\u5c06\u5982\u4f55\u5e94\u5bf9\u8fd9\u573a\u60ca\u9669\u7684\u751f\u6b7b\u53cd\u51fb\u3002',
 }
 function VideoPreviewCard({ project, onOpen }) {
-  const videoRef = useRef(null)
-  const previewVideo = project.video.replace('/digital-human-series/', '/digital-human-previews/')
-  const preview = () => {
-    const player = videoRef.current
-    if (!player) return
-    player.load()
-    player.currentTime = 0
-    player.play().catch(() => {})
-  }
-  const stopPreview = () => {
-    const player = videoRef.current
-    if (!player) return
-    player.pause()
-    player.currentTime = 0
-  }
-  return <button className={`video-tile video-tile-${project.format}`} type="button" onMouseEnter={preview} onMouseLeave={stopPreview} onFocus={preview} onBlur={stopPreview} onClick={() => onOpen(project)} aria-label={`Open ${project.title} in full video player`}>
-    <img className="video-tile-cover" src={project.cover} alt={`${project.title} cover`} />
-    <video ref={videoRef} src={previewVideo} muted loop playsInline preload="none" poster={project.cover} />
+  const [hovered, setHovered] = useState(false)
+  return <button className={`video-tile video-tile-${project.format}`} type="button" onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)} onFocus={() => setHovered(true)} onBlur={() => setHovered(false)} onClick={() => { setHovered(false); onOpen(project) }} aria-label={`Open ${project.title} in full video player`}>
+    <img className="video-tile-cover" src={project.cover} alt={`${project.title} cover`} loading="lazy" decoding="async" />
+    <PreviewVideo src={project.video} active={hovered} poster={project.cover} />
     <span><b>{project.title}</b><ArrowUpRight size={18} /></span><i>HOVER TO PREVIEW</i>
   </button>
 }
 
-function InViewLoopVideo({ src, rootMargin = '120px 0px', ...props }) {
-  const videoRef = useRef(null)
-  const [isVisible, setIsVisible] = useState(false)
-
-  useEffect(() => {
-    const video = videoRef.current
-    if (!video) return undefined
-    const observer = new IntersectionObserver(([entry]) => setIsVisible(entry.isIntersecting), { rootMargin, threshold: .05 })
-    observer.observe(video)
-    return () => observer.disconnect()
-  }, [])
-
-  useEffect(() => {
-    const video = videoRef.current
-    if (!video) return
-    if (isVisible) video.play().catch(() => {})
-    else video.pause()
-  }, [isVisible])
-
-  return <video ref={videoRef} src={src} muted loop playsInline preload={isVisible ? 'metadata' : 'none'} {...props} />
-}
+const InViewLoopVideo = PreviewVideo
 function Marquee() {
   const [selected, setSelected] = useState(null)
-  return <section id="music-mv" className="marquee"><LightPillar className="marquee-light-pillar" topColor="#5227FF" bottomColor="#FF9FFC" intensity={1} rotationSpeed={0.3} glowAmount={0.002} pillarWidth={3} pillarHeight={0.4} noiseIntensity={0.5} pillarRotation={25} interactive={false} mixBlendMode="screen" quality="high" /><div className="marquee-intro"><div className="marquee-intro-top"><span>01 / SELECTED SERIES</span><span>AI DIGITAL HUMAN / ORIGINAL MUSIC MV</span></div><div className="marquee-intro-content"><h2><span>&#x539f;&#x521b;&#x97f3;&#x4e50;</span><em>MV &#x7cfb;&#x5217;</em></h2><div className="marquee-intro-copy"><span className="marquee-intro-label">&#x9879;&#x76ee;&#x4ecb;&#x7ecd; / PROJECT INTRODUCTION</span><p>&#x300a;AI &#x6570;&#x5b57;&#x4eba;&#x97f3;&#x4e50; MV &#x7cfb;&#x5217;&#x300b;&#x56f4;&#x7ed5;&#x4e0d;&#x540c;&#x6570;&#x5b57;&#x4eba;&#x89d2;&#x8272;&#x5efa;&#x7acb;&#x72ec;&#x7acb;&#x7684;&#x5f62;&#x8c61;&#x8bbe;&#x5b9a;&#x4e0e;&#x97f3;&#x4e50;&#x89c6;&#x89c9;&#x98ce;&#x683c;&#xff0c;&#x5c06;&#x89d2;&#x8272;&#x5851;&#x9020;&#x3001;&#x6b4c;&#x66f2;&#x60c5;&#x7eea;&#x3001;&#x955c;&#x5934;&#x8282;&#x594f;&#x548c;&#x573a;&#x666f;&#x6c1b;&#x56f4;&#x8fdb;&#x884c;&#x8bbe;&#x8ba1;&#xff0c;&#x5f62;&#x6210;&#x5177;&#x6709;&#x8fa8;&#x8bc6;&#x5ea6;&#x7684;&#x6570;&#x5b57;&#x4eba;&#x97f3;&#x4e50;&#x8868;&#x8fbe;&#x3002;&#x9879;&#x76ee;&#x91cd;&#x70b9;&#x5448;&#x73b0;&#x4e86; AI &#x6570;&#x5b57;&#x4eba;&#x5f62;&#x8c61;&#x4e0e;&#x97f3;&#x4e50;&#x5185;&#x5bb9;&#x7ed3;&#x5408;&#x7684;&#x7cfb;&#x5217;&#x5316;&#x521b;&#x4f5c;&#x80fd;&#x529b;&#xff0c;&#x4ee5;&#x53ca;&#x4ece;&#x89c6;&#x89c9;&#x521b;&#x610f;&#x3001;&#x89d2;&#x8272;&#x98ce;&#x683c;&#x5236;&#x5b9a;&#x5230; MV &#x6210;&#x7247;&#x5236;&#x4f5c;&#x7684;&#x5b8c;&#x6574;&#x6d41;&#x7a0b;&#x3002;</p></div></div></div><div className="marquee-label"><span>AI DIGITAL HUMAN / MUSIC VIDEO SERIES</span><span>HOVER TO PREVIEW / CLICK FOR FULL SCREEN</span></div><div className="mv-film-grid">{musicMvProjects.map(project => <VideoPreviewCard key={project.video} project={project} onOpen={setSelected} />)}</div>{selected && <ShortDramaModal project={{ label: selected.title, video: selected.video }} onClose={() => setSelected(null)} />}</section>
+  return <section id="music-mv" className="marquee"><LightPillar className="marquee-light-pillar" topColor="#5227FF" bottomColor="#FF9FFC" intensity={1} rotationSpeed={0.3} glowAmount={0.002} pillarWidth={3} pillarHeight={0.4} noiseIntensity={0.5} pillarRotation={25} interactive={false} mixBlendMode="screen" quality="medium" /><div className="marquee-intro"><div className="marquee-intro-top"><span>01 / SELECTED SERIES</span><span>AI DIGITAL HUMAN / ORIGINAL MUSIC MV</span></div><div className="marquee-intro-content"><h2><span>&#x539f;&#x521b;&#x97f3;&#x4e50;</span><em>MV &#x7cfb;&#x5217;</em></h2><div className="marquee-intro-copy"><span className="marquee-intro-label">&#x9879;&#x76ee;&#x4ecb;&#x7ecd; / PROJECT INTRODUCTION</span><p>&#x300a;AI &#x6570;&#x5b57;&#x4eba;&#x97f3;&#x4e50; MV &#x7cfb;&#x5217;&#x300b;&#x56f4;&#x7ed5;&#x4e0d;&#x540c;&#x6570;&#x5b57;&#x4eba;&#x89d2;&#x8272;&#x5efa;&#x7acb;&#x72ec;&#x7acb;&#x7684;&#x5f62;&#x8c61;&#x8bbe;&#x5b9a;&#x4e0e;&#x97f3;&#x4e50;&#x89c6;&#x89c9;&#x98ce;&#x683c;&#xff0c;&#x5c06;&#x89d2;&#x8272;&#x5851;&#x9020;&#x3001;&#x6b4c;&#x66f2;&#x60c5;&#x7eea;&#x3001;&#x955c;&#x5934;&#x8282;&#x594f;&#x548c;&#x573a;&#x666f;&#x6c1b;&#x56f4;&#x8fdb;&#x884c;&#x8bbe;&#x8ba1;&#xff0c;&#x5f62;&#x6210;&#x5177;&#x6709;&#x8fa8;&#x8bc6;&#x5ea6;&#x7684;&#x6570;&#x5b57;&#x4eba;&#x97f3;&#x4e50;&#x8868;&#x8fbe;&#x3002;&#x9879;&#x76ee;&#x91cd;&#x70b9;&#x5448;&#x73b0;&#x4e86; AI &#x6570;&#x5b57;&#x4eba;&#x5f62;&#x8c61;&#x4e0e;&#x97f3;&#x4e50;&#x5185;&#x5bb9;&#x7ed3;&#x5408;&#x7684;&#x7cfb;&#x5217;&#x5316;&#x521b;&#x4f5c;&#x80fd;&#x529b;&#xff0c;&#x4ee5;&#x53ca;&#x4ece;&#x89c6;&#x89c9;&#x521b;&#x610f;&#x3001;&#x89d2;&#x8272;&#x98ce;&#x683c;&#x5236;&#x5b9a;&#x5230; MV &#x6210;&#x7247;&#x5236;&#x4f5c;&#x7684;&#x5b8c;&#x6574;&#x6d41;&#x7a0b;&#x3002;</p></div></div></div><div className="marquee-label"><span>AI DIGITAL HUMAN / MUSIC VIDEO SERIES</span><span>HOVER TO PREVIEW / CLICK FOR FULL SCREEN</span></div><div className="mv-film-grid">{musicMvProjects.map(project => <VideoPreviewCard key={project.video} project={project} onOpen={setSelected} />)}</div>{selected && <ShortDramaModal project={{ label: selected.title, video: selected.video, cover: selected.cover }} onClose={() => setSelected(null)} />}</section>
 }function About() {
   const go = id => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' })
   return <section id="about" className="about-profile"><div className="about-profile-stars" /><div className="about-profile-inner"><div className="about-profile-copy"><span className="about-profile-index">02 / ABOUT ME</span><h2><StrokeText text={'\u5173\u4e8e\u6211'} strokeColor="#c798ff" fillColor="#f8f4ff" strokeWidth={1.35} drawDuration={1.35} fillDelay={.08} stagger={.09} ease="power2.out" trigger="scroll" fillMode="wipe" fontSize={160} fontWeight={700} letterSpacing={-9} className="about-stroke-title" /></h2><dl className="about-profile-facts"><div><dt><FoldText text={'\u59d3\u540d'} splitBy="char" trigger="scroll" duration={.45} stagger={.06} /></dt><dd><FoldText text={'\u6768\u589e\u5ef6'} splitBy="char" trigger="scroll" duration={.5} stagger={.07} /></dd></div><div><dt><FoldText text={'\u6559\u80b2\u80cc\u666f'} splitBy="char" trigger="scroll" duration={.42} stagger={.045} /></dt><dd><FoldText text={'\u56db\u5ddd\u97f3\u4e50\u5b66\u9662 \u827a\u672f\u4e0e\u79d1\u6280\u7cfb'} splitBy="word" trigger="scroll" duration={.52} stagger={.08} /></dd></div><div><dt><FoldText text={'\u5730\u70b9'} splitBy="char" trigger="scroll" duration={.42} stagger={.06} /></dt><dd><FoldText text={'\u6210\u90fd\uff0c\u91cd\u5e86'} splitBy="char" trigger="scroll" duration={.48} stagger={.045} /></dd></div><div><dt><FoldText text={'\u65b9\u5411'} splitBy="char" trigger="scroll" duration={.42} stagger={.06} /></dt><dd><FoldText text={'AIGC \u89c6\u89c9\u8bbe\u8ba1\u5e08\uff5c\u4e13\u6ce8 AI \u89c6\u9891\u3001\u54c1\u724c\u5f71\u50cf\u4e0e\u793e\u4ea4\u5a92\u4f53\u5185\u5bb9\u5236\u4f5c'} splitBy="char" trigger="scroll" duration={.52} stagger={.02} /></dd></div></dl><p className="about-profile-description"><FoldText text={'\u6211\u662f\u6768\u589e\u5ef6\uff0c\u4e00\u540d\u517c\u5177\u827a\u672f\u5ba1\u7f8e\u3001\u6570\u5b57\u6280\u672f\u4e0e\u5546\u4e1a\u5316\u8fd0\u8425\u80fd\u529b\u76842027\u5c4a\u5e94\u5c4a\u6bd5\u4e1a\u751f\u3002\u62e5\u6709\u5b8c\u6574AI\u5185\u5bb9\u8fd0\u8425\u5b9e\u4e60\u7ecf\u9a8c\u3002\u719f\u7ec3\u8fd0\u7528AI\u751f\u6210\uff0c\u540c\u65f6\u4e5f\u7cbe\u901aUE5\u3001\u0033D\u3001\u89c6\u9891\u540e\u671f\u526a\u8f91\u5de5\u5177\uff0c\u80fd\u4ea7\u51fa\u9002\u914d\u5e73\u53f0\u6d41\u91cf\u7684\u5546\u4e1a\u89c6\u89c9\u5185\u5bb9\u3002'} splitBy="line" trigger="scroll" duration={.75} stagger={.02} /></p><button className="about-profile-cta" onClick={() => go('projects')}><FoldText text={'\u67e5\u770b\u7cbe\u9009\u4f5c\u54c1'} splitBy="char" trigger="scroll" duration={.42} stagger={.04} /><ArrowUpRight size={17} /></button></div><div className="about-profile-visual about-profile-card-panel"><ProfileCard name="&#x6768;&#x589e;&#x5ef6;" title="AIGC &#x8bbe;&#x8ba1;&#x5e08;" handle="2206573527@qq.com" status="Available" contactText="&#x8054;&#x7cfB;&#x6211;" avatarUrl="/images/profile/yang-zengyan.webp" showUserInfo enableTilt enableMobileTilt={false} onContactClick={() => { window.location.href = 'mailto:2206573527@qq.com' }} behindGlowColor="rgba(116,161,235,.36)" iconUrl="/mark.svg" behindGlowEnabled innerGradient="linear-gradient(145deg,rgba(36,48,69,.58) 0%,rgba(76,108,141,.14) 100%)" /><aside className="about-profile-workflow" aria-label="AI creative pipeline"><div className="about-workflow-heading"><span>AI CREATIVE PIPELINE</span><strong>AI &#x521B;&#x4F5C;&#x6D41;&#x7A0B;</strong></div><ol><li><span className="about-workflow-icon"><Lightbulb size={16} /></span><div><b>01</b><strong>&#x521B;&#x610F;&#x7B56;&#x7565;</strong><small>Concept Direction</small></div></li><li><span className="about-workflow-icon"><UserRound size={16} /></span><div><b>02</b><strong>&#x89D2;&#x8272;&#x8BBE;&#x5B9A;</strong><small>Character Design</small></div></li><li><span className="about-workflow-icon"><Sparkles size={16} /></span><div><b>03</b><strong>AI &#x751F;&#x6210;</strong><small>Visual Generation</small></div></li><li><span className="about-workflow-icon"><Clapperboard size={16} /></span><div><b>04</b><strong>&#x52A8;&#x6001;&#x5236;&#x4F5C;</strong><small>Motion Making</small></div></li><li><span className="about-workflow-icon"><Scissors size={16} /></span><div><b>05</b><strong>&#x540E;&#x671F;&#x526A;&#x8F91;</strong><small>Post Production</small></div></li><li><span className="about-workflow-icon"><Rocket size={16} /></span><div><b>06</b><strong>&#x6210;&#x7247;&#x843D;&#x5730;</strong><small>Final Delivery</small></div></li></ol></aside></div></div></section>
 }function ShortDramaModal({ project, onClose }) {
   const videoRef = useRef(null)
+  const closeRef = useRef(onClose)
+  closeRef.current = onClose
   const [playerStatus, setPlayerStatus] = useState('loading')
-  const [playbackSrc, setPlaybackSrc] = useState('')
-  const [downloadProgress, setDownloadProgress] = useState(0)
+  const [attempt, setAttempt] = useState(0)
 
   useEffect(() => {
-    const handleKeyDown = event => { if (event.key === 'Escape') onClose() }
-    const controller = new AbortController()
-    let objectUrl = ''
-    let cancelled = false
+    const handleKeyDown = event => { if (event.key === 'Escape') closeRef.current() }
+    const previousOverflow = document.body.style.overflow
     document.body.style.overflow = 'hidden'
+    setPlayerOpen(true)
     window.addEventListener('keydown', handleKeyDown)
-
-    const prepareSeekableVideo = async () => {
-      try {
-        const response = await fetch(project.video, { cache: 'force-cache', signal: controller.signal })
-        if (!response.ok) throw new Error(`Video request failed: ${response.status}`)
-        const total = Number(response.headers.get('content-length')) || 0
-        let blob
-        if (response.body && total) {
-          const reader = response.body.getReader()
-          const chunks = []
-          let received = 0
-          while (true) {
-            const { done, value } = await reader.read()
-            if (done) break
-            chunks.push(value)
-            received += value.byteLength
-            if (!cancelled) setDownloadProgress(Math.min(99, Math.round((received / total) * 100)))
-          }
-          blob = new Blob(chunks, { type: response.headers.get('content-type') || 'video/mp4' })
-        } else {
-          blob = await response.blob()
-        }
-        objectUrl = URL.createObjectURL(blob)
-        if (cancelled) URL.revokeObjectURL(objectUrl)
-        else {
-          setDownloadProgress(100)
-          setPlaybackSrc(objectUrl)
-        }
-      } catch (error) {
-        if (error.name !== 'AbortError' && !cancelled) setPlayerStatus('error')
-      }
-    }
-
-    prepareSeekableVideo()
     return () => {
-      cancelled = true
-      controller.abort()
-      if (objectUrl) URL.revokeObjectURL(objectUrl)
-      document.body.style.overflow = ''
+      setPlayerOpen(false)
+      document.body.style.overflow = previousOverflow
       window.removeEventListener('keydown', handleKeyDown)
     }
-  }, [onClose, project.video])
+  }, [])
 
-  const handleCanPlay = () => {
-    setPlayerStatus('ready')
-  }
+  useEffect(() => {
+    const video = videoRef.current
+    setPlayerStatus('loading')
+    video.src = playbackUrl(project.video)
+    video.play().catch(error => {
+      if (error.name === 'NotAllowedError') setPlayerStatus('paused')
+    })
+    return () => {
+      video.pause()
+      video.removeAttribute('src')
+      video.load()
+    }
+  }, [project.video, attempt])
 
+  const ready = () => setPlayerStatus('ready')
   return createPortal(<div className="short-drama-modal" role="dialog" aria-modal="true" aria-label={`${project.label} video player`} onClick={onClose}>
     <div className="short-drama-modal-inner" onClick={event => event.stopPropagation()}>
-      <div className="short-drama-modal-bar"><div><small>NOW PLAYING</small><strong>{project.label}</strong></div><div><a className="short-drama-external" href={project.video} target="_blank" rel="noreferrer">OPEN VIDEO <ArrowUpRight size={16} /></a><button className="short-drama-fullscreen" onClick={() => videoRef.current?.requestFullscreen?.()}>FULL SCREEN <ArrowUpRight size={16} /></button><button className="short-drama-close" onClick={onClose} aria-label="Close player">&times;</button></div></div>
-      <div className="short-drama-player-wrap">{playbackSrc && <video ref={videoRef} src={playbackSrc} controls autoPlay muted playsInline preload="auto" onCanPlay={handleCanPlay} onError={() => setPlayerStatus('error')} />}{playerStatus === 'loading' && <div className="short-drama-loading">PREPARING SEEKABLE VIDEO {downloadProgress}%</div>}{playerStatus === 'error' && <div className="short-drama-error">VIDEO FAILED TO LOAD <a href={project.video} target="_blank" rel="noreferrer">OPEN DIRECTLY</a></div>}</div>
+      <div className="short-drama-modal-bar"><div><small>NOW PLAYING</small><strong>{project.label}</strong></div><div><a className="short-drama-external" href={playbackUrl(project.video)} target="_blank" rel="noreferrer">OPEN VIDEO <ArrowUpRight size={16} /></a><button className="short-drama-fullscreen" onClick={() => videoRef.current?.requestFullscreen?.()}>FULL SCREEN <ArrowUpRight size={16} /></button><button className="short-drama-close" onClick={onClose} aria-label="Close player">&times;</button></div></div>
+      <div className="short-drama-player-wrap"><video ref={videoRef} poster={project.cover || project.poster || previewPoster(project.video)} controls autoPlay muted playsInline preload="auto" onLoadedData={ready} onCanPlay={ready} onPlaying={ready} onSeeked={ready} onWaiting={() => setPlayerStatus('buffering')} onError={() => setPlayerStatus('error')} />{['loading', 'buffering'].includes(playerStatus) && <div className="video-buffering-status" role="status">{playerStatus === 'loading' ? '正在加载视频…' : '正在缓冲…'}</div>}{playerStatus === 'error' && <div className="short-drama-error" role="alert">视频暂时无法播放<div><button type="button" onClick={() => setAttempt(value => value + 1)}>重新加载</button><a href={playbackUrl(project.video)} target="_blank" rel="noreferrer">直接打开视频</a></div></div>}</div>
     </div>
   </div>, document.body)
 }
@@ -279,9 +222,9 @@ function Projects() {
       <div className="culture-project-intro"><span>{project.number}</span><div><small>{project.category}</small><h3 dangerouslySetInnerHTML={{ __html: project.title }} />{project.award && <p className="culture-project-award"><span>AWARD / SELECTED RECOGNITION</span><em dangerouslySetInnerHTML={{ __html: project.award }} /></p>}<p>AI VISUAL DEVELOPMENT / MOTION / EDIT</p></div><button onClick={() => openVideo(project)}>VIEW FILM <ArrowUpRight size={17} /></button></div>
       <div className={`culture-project-media culture-project-media-${project.number}`}>
         <button className="culture-media-frame culture-video-frame culture-media-action" type="button" onClick={() => openVideo(project)} aria-label={`Play ${project.category} full video`}><InViewLoopVideo src={project.video} poster={project.poster} rootMargin={project.number === '02' ? '720px 0px' : '180px 0px'} /><span className="culture-media-action-label">PLAY FULL VIDEO <ArrowUpRight size={15} /></span></button>
-        <button className="culture-media-frame culture-cover-frame culture-cover-primary culture-media-action" type="button" onClick={() => openImage(project, project.covers[0], '01')} aria-label={`View ${project.category} image 1`}><img src={project.covers[0]} alt={`${project.category} supporting visual 1`} /><span className="culture-media-action-label">VIEW IMAGE <ArrowUpRight size={15} /></span></button>
-        <button className="culture-media-frame culture-cover-frame culture-cover-secondary culture-media-action" type="button" onClick={() => openImage(project, project.covers[1], '02')} aria-label={`View ${project.category} image 2`}><img src={project.covers[1]} alt={`${project.category} supporting visual 2`} /><span className="culture-media-action-label">VIEW IMAGE <ArrowUpRight size={15} /></span></button>
-        {project.covers[2] && <button className="culture-media-frame culture-cover-frame culture-cover-tertiary culture-media-action" type="button" onClick={() => openImage(project, project.covers[2], '03')} aria-label={`View ${project.category} image 3`}><img src={project.covers[2]} alt={`${project.category} supporting visual 3`} /><span className="culture-media-action-label">VIEW IMAGE <ArrowUpRight size={15} /></span></button>}
+        <button className="culture-media-frame culture-cover-frame culture-cover-primary culture-media-action" type="button" onClick={() => openImage(project, project.covers[0], '01')} aria-label={`View ${project.category} image 1`}><img src={thumbnailUrl(project.covers[0])} alt={`${project.category} supporting visual 1`} loading="lazy" decoding="async" /><span className="culture-media-action-label">VIEW IMAGE <ArrowUpRight size={15} /></span></button>
+        <button className="culture-media-frame culture-cover-frame culture-cover-secondary culture-media-action" type="button" onClick={() => openImage(project, project.covers[1], '02')} aria-label={`View ${project.category} image 2`}><img src={thumbnailUrl(project.covers[1])} alt={`${project.category} supporting visual 2`} loading="lazy" decoding="async" /><span className="culture-media-action-label">VIEW IMAGE <ArrowUpRight size={15} /></span></button>
+        {project.covers[2] && <button className="culture-media-frame culture-cover-frame culture-cover-tertiary culture-media-action" type="button" onClick={() => openImage(project, project.covers[2], '03')} aria-label={`View ${project.category} image 3`}><img src={thumbnailUrl(project.covers[2])} alt={`${project.category} supporting visual 3`} /><span className="culture-media-action-label">VIEW IMAGE <ArrowUpRight size={15} /></span></button>}
       </div>
     </article>)}</div>
     {selectedVideo && <ShortDramaModal project={selectedVideo} onClose={() => setSelectedVideo(null)} />}
@@ -295,14 +238,14 @@ function AdvertisingFilms() {
   const [selectedProject, setSelectedProject] = useState(null)
   const [selectedImage, setSelectedImage] = useState(null)
   const projectDescription = '\u8D1F\u8D23 2 \u652F\u300ASeaGames\u300B\u5B98\u65B9\u4EA7\u54C1\u767B\u5F55\u6CE8\u518C\u9875\u9762\u914D\u5957\u5BA3\u4F20\u89C6\u9891\u7684\u5168\u6D41\u7A0B\u5236\u4F5C\uFF0C\u4F5C\u4E3A\u9875\u9762\u9644\u5C5E\u7269\u6599\u5D4C\u5165\u4F01\u4E1A\u6B63\u5F0F\u9879\u76EE\u767B\u5F55\u6CE8\u518C\u9875\u4FA7\u8FB9\uFF0C\u5DF2\u4E0A\u7EBF\u843D\u5730\u4F7F\u7528\u3002'
-  return <section id="advertising" className="advertising-films"><div className="advertising-heading"><div className="advertising-kicker"><span>04 / SELECTED WORK</span><span>COMMERCIAL / SOCIAL MEDIA / VISUAL CAMPAIGN</span></div><div className="advertising-heading-content"><h2><span>&#x5E7F;&#x544A;</span><em>&#x5BA3;&#x4F20;&#x7247;&#x7CFB;&#x5217;</em></h2><div className="advertising-copy"><span>PROJECT INTRODUCTION / ADVERTISING FILMS</span><p>&#x56F4;&#x7ED5;&#x54C1;&#x724C;&#x793E;&#x5A92;&#x4F20;&#x64AD;&#x4E0E;&#x4EA7;&#x54C1;&#x5F62;&#x8C61;&#x5C55;&#x793A;&#xFF0C;&#x8FD0;&#x7528; AI &#x89C6;&#x89C9;&#x751F;&#x6210;&#x3001;&#x52A8;&#x6001;&#x8BBE;&#x8BA1;&#x4E0E;&#x526A;&#x8F91;&#x8282;&#x594F;&#xFF0C;&#x5B8C;&#x6210;&#x4ECE;&#x521B;&#x610F;&#x6784;&#x601D;&#x5230;&#x5F71;&#x50CF;&#x5448;&#x73B0;&#x7684;&#x7CFB;&#x5217;&#x5316;&#x521B;&#x4F5C;&#x3002;</p></div></div></div><div className="seagames-introduction"><span>FEATURED PROJECT / SEAGAMES</span><p>{projectDescription.replace(/已上线落地使用。$/, "")}<strong className="seagames-live-highlight">已上线落地使用</strong>。</p></div><div className="seagames-feature-grid">{seaGamesProjects.map(project => <article className="seagames-feature" key={project.video}><button className="seagames-feature-video" type="button" onClick={() => setSelectedProject(project)} aria-label={`Open ${project.label}`}><InViewLoopVideo src={project.video} /><span className="seagames-video-overlay" /><span className="seagames-video-meta"><small>OFFICIAL PRODUCT FILM / {project.number}</small><strong>{project.label}</strong><i>CLICK TO VIEW FULL FILM <ArrowUpRight size={15} /></i></span></button><button className="seagames-feature-side" type="button" onClick={() => setSelectedImage(project)} aria-label={`View ${project.label} supporting visual`}><img src={project.image} alt={`${project.label} supporting visual`} loading="lazy" /><span>页面截图 / {project.number}</span><b>查看截图 <ArrowUpRight size={13} /></b></button></article>)}</div>{selectedProject && <ShortDramaModal project={selectedProject} onClose={() => setSelectedProject(null)} />}{selectedImage && <ImagePreviewModal project={selectedImage} onClose={() => setSelectedImage(null)} />}</section>
+  return <section id="advertising" className="advertising-films"><div className="advertising-heading"><div className="advertising-kicker"><span>04 / SELECTED WORK</span><span>COMMERCIAL / SOCIAL MEDIA / VISUAL CAMPAIGN</span></div><div className="advertising-heading-content"><h2><span>&#x5E7F;&#x544A;</span><em>&#x5BA3;&#x4F20;&#x7247;&#x7CFB;&#x5217;</em></h2><div className="advertising-copy"><span>PROJECT INTRODUCTION / ADVERTISING FILMS</span><p>&#x56F4;&#x7ED5;&#x54C1;&#x724C;&#x793E;&#x5A92;&#x4F20;&#x64AD;&#x4E0E;&#x4EA7;&#x54C1;&#x5F62;&#x8C61;&#x5C55;&#x793A;&#xFF0C;&#x8FD0;&#x7528; AI &#x89C6;&#x89C9;&#x751F;&#x6210;&#x3001;&#x52A8;&#x6001;&#x8BBE;&#x8BA1;&#x4E0E;&#x526A;&#x8F91;&#x8282;&#x594F;&#xFF0C;&#x5B8C;&#x6210;&#x4ECE;&#x521B;&#x610F;&#x6784;&#x601D;&#x5230;&#x5F71;&#x50CF;&#x5448;&#x73B0;&#x7684;&#x7CFB;&#x5217;&#x5316;&#x521B;&#x4F5C;&#x3002;</p></div></div></div><div className="seagames-introduction"><span>FEATURED PROJECT / SEAGAMES</span><p>{projectDescription.replace(/已上线落地使用。$/, "")}<strong className="seagames-live-highlight">已上线落地使用</strong>。</p></div><div className="seagames-feature-grid">{seaGamesProjects.map(project => <article className="seagames-feature" key={project.video}><button className="seagames-feature-video" type="button" onClick={() => setSelectedProject(project)} aria-label={`Open ${project.label}`}><InViewLoopVideo src={project.video} /><span className="seagames-video-overlay" /><span className="seagames-video-meta"><small>OFFICIAL PRODUCT FILM / {project.number}</small><strong>{project.label}</strong><i>CLICK TO VIEW FULL FILM <ArrowUpRight size={15} /></i></span></button><button className="seagames-feature-side" type="button" onClick={() => setSelectedImage(project)} aria-label={`View ${project.label} supporting visual`}><img src={thumbnailUrl(project.image)} alt={`${project.label} supporting visual`} loading="lazy" decoding="async" /><span>页面截图 / {project.number}</span><b>查看截图 <ArrowUpRight size={13} /></b></button></article>)}</div>{selectedProject && <ShortDramaModal project={selectedProject} onClose={() => setSelectedProject(null)} />}{selectedImage && <ImagePreviewModal project={selectedImage} onClose={() => setSelectedImage(null)} />}</section>
 }function JiangxingShowcase() {
   const [selectedProject, setSelectedProject] = useState(null)
   const [selectedImage, setSelectedImage] = useState(null)
-  return <section id="jiangxing-laptop" className="jiangxing-showcase"><div className="jiangxing-showcase-head"><div><span>ADVERTISING FILMS / FEATURED SUBPROJECT</span><h2>&#x300a;&#x5c06;&#x661f;&#x300b;<em>&#x7b14;&#x8bb0;&#x672c;&#x5e7f;&#x544a;&#x77ed;&#x7247;</em></h2></div><p><b>&#x9879;&#x76ee;&#x7b80;&#x4ecb; / PROJECT SYNOPSIS</b>{jiangxingProject.description}</p></div><div className="jiangxing-showcase-grid"><button className="jiangxing-video" type="button" onClick={() => setSelectedProject(jiangxingProject)} aria-label="Play Jiangxing laptop advertising film"><InViewLoopVideo src={jiangxingProject.video} rootMargin="300px 0px" /><span className="jiangxing-video-scrim" /><span className="jiangxing-video-action"><small>JIANXING LAPTOP / OFFICIAL FILM</small><strong>&#x64ad;&#x653e;&#x5b8c;&#x6574;&#x5e7f;&#x544a;</strong><i>PLAY FULL FILM <ArrowUpRight size={17} /></i></span></button><button className="jiangxing-poster" type="button" onClick={() => setSelectedImage(jiangxingProject)} aria-label="View Jiangxing laptop advertising poster"><img src={jiangxingProject.image} alt="Jiangxing laptop advertising poster" loading="lazy" /><span><small>KEY VISUAL / POSTER</small><strong>&#x67e5;&#x770b;&#x5b8c;&#x6574;&#x6d77;&#x62a5;</strong><i>VIEW POSTER <ArrowUpRight size={15} /></i></span></button></div>{selectedProject && <ShortDramaModal project={selectedProject} onClose={() => setSelectedProject(null)} />}{selectedImage && <ImagePreviewModal project={selectedImage} onClose={() => setSelectedImage(null)} />}</section>
+  return <section id="jiangxing-laptop" className="jiangxing-showcase"><div className="jiangxing-showcase-head"><div><span>ADVERTISING FILMS / FEATURED SUBPROJECT</span><h2>&#x300a;&#x5c06;&#x661f;&#x300b;<em>&#x7b14;&#x8bb0;&#x672c;&#x5e7f;&#x544a;&#x77ed;&#x7247;</em></h2></div><p><b>&#x9879;&#x76ee;&#x7b80;&#x4ecb; / PROJECT SYNOPSIS</b>{jiangxingProject.description}</p></div><div className="jiangxing-showcase-grid"><button className="jiangxing-video" type="button" onClick={() => setSelectedProject(jiangxingProject)} aria-label="Play Jiangxing laptop advertising film"><InViewLoopVideo src={jiangxingProject.video} rootMargin="300px 0px" /><span className="jiangxing-video-scrim" /><span className="jiangxing-video-action"><small>JIANXING LAPTOP / OFFICIAL FILM</small><strong>&#x64ad;&#x653e;&#x5b8c;&#x6574;&#x5e7f;&#x544a;</strong><i>PLAY FULL FILM <ArrowUpRight size={17} /></i></span></button><button className="jiangxing-poster" type="button" onClick={() => setSelectedImage(jiangxingProject)} aria-label="View Jiangxing laptop advertising poster"><img src={thumbnailUrl(jiangxingProject.image)} alt="Jiangxing laptop advertising poster" loading="lazy" /><span><small>KEY VISUAL / POSTER</small><strong>&#x67e5;&#x770b;&#x5b8c;&#x6574;&#x6d77;&#x62a5;</strong><i>VIEW POSTER <ArrowUpRight size={15} /></i></span></button></div>{selectedProject && <ShortDramaModal project={selectedProject} onClose={() => setSelectedProject(null)} />}{selectedImage && <ImagePreviewModal project={selectedImage} onClose={() => setSelectedImage(null)} />}</section>
 }function FinalShowcase() {
   const [selectedProject, setSelectedProject] = useState(null)
-  const openProject = item => setSelectedProject({ label: item.title, video: item.href })
+  const openProject = item => setSelectedProject({ label: item.title, video: item.href, cover: item.image })
   return <section id="final-showcase" className="final-showcase"><div className="final-showcase-head"><span>06 / FINAL SHOWCASE</span><div><h2>更多<em>影像作品</em></h2><p>其他数字人音乐影像、品牌与社媒短片，以及 fifi_Gia IP 账号内容。点击作品可观看完整视频。</p></div></div><div className="final-showcase-wall" style={{ height: 600 }}><DriftWall items={finalShowcaseItems} columns={5} tileWidth={200} tileHeight={124} gap={16} tilt={16} turn={-8} perspective={1200} depth={120} speed={42} direction="up" variance={0.45} parallax={0.6} lift={48} fade={0.2} dim={0.65} overlayColor="#060010" radius={15} roll={0} pauseOnHover={false} grayscale={false} onItemClick={openProject} /></div><div className="final-showcase-foot"><span>{String(finalShowcaseItems.length).padStart(2, "0")} FILMS / SELECTED ARCHIVE</span><span>CLICK TO PLAY <ArrowUpRight size={14} /></span></div>{selectedProject && <ShortDramaModal project={selectedProject} onClose={() => setSelectedProject(null)} />}</section>
 }function Hero({ onReady }) {
   const [progress, setProgress] = useState(0)
@@ -311,7 +254,7 @@ function AdvertisingFilms() {
   const go = id => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' })
 
   useEffect(() => {
-    const duration = 1750
+    const duration = 650
     const startedAt = performance.now()
     let frameId
     const tick = now => {
@@ -319,7 +262,7 @@ function AdvertisingFilms() {
       const eased = 1 - Math.pow(1 - elapsed, 3)
       setProgress(Math.round(eased * 100))
       if (elapsed < 1) frameId = requestAnimationFrame(tick)
-      else window.setTimeout(() => { setReady(true); onReady?.() }, 180)
+      else window.setTimeout(() => { setReady(true); onReady?.() }, 80)
     }
     frameId = requestAnimationFrame(tick)
     return () => cancelAnimationFrame(frameId)
