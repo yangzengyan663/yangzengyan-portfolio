@@ -1,6 +1,7 @@
 import { useRef, useEffect, useState } from 'react';
 import * as THREE from 'three';
 import './LightPillar.css';
+import { isPlayerOpen } from '../media';
 
 const LightPillar = ({
   topColor = '#5227FF',
@@ -255,7 +256,7 @@ const LightPillar = ({
     const targetFPS = effectiveQuality === 'low' ? 30 : 60;
     const frameTime = 1000 / targetFPS;
     let isInView = false;
-    let isPageVisible = !document.hidden;
+    let isPageVisible = !document.hidden && !isPlayerOpen();
     let disposed = false;
 
     const animate = currentTime => {
@@ -288,10 +289,11 @@ const LightPillar = ({
     }, { threshold: .05 });
     visibilityObserver.observe(container);
     const handlePageVisibility = () => {
-      isPageVisible = !document.hidden;
+      isPageVisible = !document.hidden && !isPlayerOpen();
       isPageVisible ? startAnimation() : stopAnimation();
     };
     document.addEventListener('visibilitychange', handlePageVisibility);
+    document.addEventListener('portfolio-player-change', handlePageVisibility);
 
     let resizeTimeout = null;
     const handleResize = () => {
@@ -314,6 +316,7 @@ const LightPillar = ({
       disposed = true;
       visibilityObserver.disconnect();
       document.removeEventListener('visibilitychange', handlePageVisibility);
+      document.removeEventListener('portfolio-player-change', handlePageVisibility);
       window.removeEventListener('resize', handleResize);
       if (interactive) {
         container.removeEventListener('mousemove', handleMouseMove);

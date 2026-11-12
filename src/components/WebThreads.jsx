@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { Renderer, Program, Mesh, Triangle } from 'ogl';
 import './WebThreads.css';
+import { isPlayerOpen } from '../media';
 
 const hexToRgb = hex => {
   const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
@@ -173,7 +174,7 @@ const WebThreads = ({
       alpha: true,
       premultipliedAlpha: true,
       antialias: false,
-      dpr: Math.min(window.devicePixelRatio || 1, 2)
+      dpr: Math.min(window.devicePixelRatio || 1, 1.25)
     });
 
     const gl = renderer.gl;
@@ -260,7 +261,7 @@ const WebThreads = ({
 
     let raf = 0;
     let isVisible = true;
-    let isPageVisible = !document.hidden;
+    let isPageVisible = !document.hidden && !isPlayerOpen();
     const t0 = performance.now();
 
     const loop = t => {
@@ -297,10 +298,11 @@ const WebThreads = ({
     io.observe(container);
 
     const onVisibility = () => {
-      isPageVisible = !document.hidden;
+      isPageVisible = !document.hidden && !isPlayerOpen();
       isPageVisible ? tryStart() : tryStop();
     };
     document.addEventListener('visibilitychange', onVisibility);
+    document.addEventListener('portfolio-player-change', onVisibility);
 
     tryStart();
 
@@ -309,6 +311,7 @@ const WebThreads = ({
       ro.disconnect();
       io.disconnect();
       document.removeEventListener('visibilitychange', onVisibility);
+      document.removeEventListener('portfolio-player-change', onVisibility);
       window.removeEventListener('pointermove', onMouseMove);
       window.removeEventListener('blur', onMouseLeave);
       ctxMap.delete(container);

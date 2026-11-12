@@ -1,5 +1,6 @@
-﻿import { useCallback, useEffect, useRef, useState } from 'react'
+﻿import { useCallback, useRef, useState } from 'react'
 import './AccordionGallery.css'
+import PreviewVideo from '../PreviewVideo'
 
 const resolveEase = ease => ease?.includes('power3') ? 'cubic-bezier(.22,1,.36,1)' : 'cubic-bezier(.22,1,.36,1)'
 
@@ -7,38 +8,8 @@ export default function AccordionGallery({
   items = [], defaultIndex = 0, expandRatio = .52, trigger = 'hover', accentColor = '#ffffff', overlayColor = '#060010', textColor = '#ffffff', grayscale = false, showLabels = true, duration = .6, ease = 'power3.out', parallax = .5, tilt = 8, stagger = .06, height = 460, gap = 10, radius = 16, orientation = 'horizontal', onItemClick,
 }) {
   const rootRef = useRef(null)
-  const videoRefs = useRef([])
-  const [isVisible, setIsVisible] = useState(false)
   const [activeIndex, setActiveIndex] = useState(Math.min(Math.max(defaultIndex, 0), Math.max(items.length - 1, 0)))
   const expandedFlex = Math.max(3.5, expandRatio * 10)
-
-  useEffect(() => {
-    const root = rootRef.current
-    if (!root) return undefined
-    const observer = new IntersectionObserver(([entry]) => setIsVisible(entry.isIntersecting), { rootMargin: '160px 0px', threshold: .05 })
-    observer.observe(root)
-    return () => observer.disconnect()
-  }, [])
-
-  useEffect(() => {
-    const cleanups = []
-    videoRefs.current.forEach(video => {
-      if (!video) return
-      const start = () => video.play().catch(() => {})
-      if (isVisible) {
-        video.muted = true
-        if (video.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA) start()
-        else {
-          video.addEventListener('loadeddata', start, { once: true })
-          cleanups.push(() => video.removeEventListener('loadeddata', start))
-          video.load()
-        }
-      } else {
-        video.pause()
-      }
-    })
-    return () => cleanups.forEach(cleanup => cleanup())
-  }, [isVisible])
 
   const activate = index => setActiveIndex(index)
   const moveMedia = useCallback((event, index) => {
@@ -57,7 +28,7 @@ export default function AccordionGallery({
       const isActive = index === activeIndex
       const events = trigger === 'hover' ? { onMouseEnter: () => activate(index), onFocus: () => activate(index) } : {}
       return <a className={`accordion-gallery-item ${isActive ? 'is-active' : ''}`} href={item.link || '#'} key={item.video || item.image || item.label || index} style={{ flexGrow: isActive ? expandedFlex : 1, transitionDelay: `${index * stagger}s` }} {...events} onClick={event => { event.preventDefault(); activate(index); onItemClick?.(item, index) }} onPointerMove={event => moveMedia(event, index)} onPointerLeave={resetMedia} aria-label={item.label || `Project ${index + 1}`}>
-        {item.video ? <video ref={element => { videoRefs.current[index] = element }} src={item.video} autoPlay muted loop playsInline preload={isVisible ? 'metadata' : 'none'} /> : <img src={item.image} alt="" loading="lazy" />}
+        {item.video ? <PreviewVideo src={item.video} active={isActive} poster={item.poster} /> : <img src={item.image} alt="" loading="lazy" />}
         <span className="accordion-gallery-overlay" />
         {showLabels && <span className="accordion-gallery-label"><small>SHORT DRAMA / {String(index + 1).padStart(2, '0')}</small><strong>{item.label}</strong><i>&rarr;</i></span>}
       </a>
