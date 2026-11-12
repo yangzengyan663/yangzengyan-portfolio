@@ -31,12 +31,24 @@ export default function DriftWall({
   const safeColumns = clampColumns(columns)
   const columnItems = useMemo(() => {
     if (!items.length) return []
+    // Mix categories once, then keep a shared rhythm so equal works cannot
+    // drift together as independently timed columns overtake each other.
+    const mixed = [...items]
+    let seed = 617
+    for (let index = mixed.length - 1; index > 0; index -= 1) {
+      seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0
+      const other = seed % (index + 1)
+      ;[mixed[index], mixed[other]] = [mixed[other], mixed[index]]
+    }
+    const gcd = (a, b) => b ? gcd(b, a % b) : a
+    let rowStep = Math.max(1, Math.round(Math.sqrt(items.length)))
+    while (gcd(rowStep, items.length) !== 1) rowStep -= 1
     return Array.from({ length: safeColumns }, (_, columnIndex) => {
-      // Cycle through the whole collection before repeating a work in a column.
+      // Diagonally interleave the collection, including across the loop seam.
       return Array.from({ length: items.length }, (_, itemIndex) =>
-        items[(itemIndex + columnIndex * Math.ceil(items.length / safeColumns)) % items.length])
+        mixed[(itemIndex * rowStep + columnIndex) % mixed.length])
     })
-  }, [items, safeColumns, tileHeight, gap])
+  }, [items, safeColumns])
 
   const openItem = item => {
     if (onItemClick) onItemClick(item)
@@ -65,12 +77,11 @@ export default function DriftWall({
   >
     <div className="drift-wall-plane">
       {columnItems.map((column, columnIndex) => {
-        const variation = 1 + ((((columnIndex * 37) % 11) / 10) - .5) * variance
-        const duration = Math.max(12, speed * variation)
+        const duration = Math.max(12, speed)
         const reverse = direction === 'down'
         const loopItems = [...column, ...column]
         return <div className="drift-wall-column" key={columnIndex} style={{ '--drift-column': columnIndex }}>
-          <div className={`drift-wall-track ${reverse ? 'is-down' : ''}`} style={{ '--drift-duration': `${duration}s`, '--drift-delay': `${-columnIndex * 2.7}s` }}>
+          <div className={`drift-wall-track ${reverse ? 'is-down' : ''}`} style={{ '--drift-duration': `${duration}s`, '--drift-delay': '0s' }}>
             {loopItems.map((item, itemIndex) => <button
               className="drift-wall-tile"
               type="button"
