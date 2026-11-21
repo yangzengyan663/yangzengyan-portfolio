@@ -10,6 +10,7 @@ import ProfileCard from './components/ProfileCard'
 import StrokeText from './components/StrokeText'
 import FoldText from './components/FoldText'
 import DriftWall from './DriftWall'
+import VisualBoundary, { PortfolioRecovery } from './VisualBoundary'
 import PreviewVideo from './PreviewVideo'
 import { playbackUrl, previewPoster, setPlayerOpen, thumbnailUrl } from './media'
 import './styles.css'
@@ -256,16 +257,27 @@ function AdvertisingFilms() {
   useEffect(() => {
     const duration = 650
     const startedAt = performance.now()
-    let frameId
+    let frameId, finishTimer, deadline
+    let finished = false
+    const complete = () => {
+      if (finished) return
+      finished = true
+      clearTimeout(deadline)
+      setProgress(100)
+      setReady(true)
+      onReady?.()
+    }
     const tick = now => {
+      if (finished) return
       const elapsed = Math.min((now - startedAt) / duration, 1)
       const eased = 1 - Math.pow(1 - elapsed, 3)
       setProgress(Math.round(eased * 100))
       if (elapsed < 1) frameId = requestAnimationFrame(tick)
-      else window.setTimeout(() => { setReady(true); onReady?.() }, 80)
+      else finishTimer = window.setTimeout(complete, 80)
     }
+    deadline = window.setTimeout(complete, 1400)
     frameId = requestAnimationFrame(tick)
-    return () => cancelAnimationFrame(frameId)
+    return () => { finished = true; cancelAnimationFrame(frameId); clearTimeout(finishTimer); clearTimeout(deadline) }
   }, [])
 
   useEffect(() => {
@@ -279,7 +291,7 @@ function AdvertisingFilms() {
   }, [ready])
 
   return <section id="home" className={`reference-hero ${ready ? 'is-ready' : ''}`}>
-    <WebThreads color1="#5227FF" color2="#FF9FFC" color3="#FFFFFF" speed={0.2} threadCount={6} frequency={5} spread={0.18} taper={1} position={0.5} fanMode="center" glow={0.02} falloff={0.6} thickness={1.1} brightness={0.6} opacity={1} mirror shimmer={false} grain grainIntensity={0.05} mouseInteraction mouseStrength={0.3} />
+    <VisualBoundary fallback={<div className="web-threads-container ambient-fallback" aria-hidden="true" />}><WebThreads color1="#5227FF" color2="#FF9FFC" color3="#FFFFFF" speed={0.2} threadCount={6} frequency={5} spread={0.18} taper={1} position={0.5} fanMode="center" glow={0.02} falloff={0.6} thickness={1.1} brightness={0.6} opacity={1} mirror shimmer={false} grain grainIntensity={0.05} mouseInteraction mouseStrength={0.3} /></VisualBoundary>
     <div className="reference-noise" />
     <div className="reference-orb reference-orb-left" />
     <div className="reference-orb reference-orb-right" />
@@ -339,80 +351,46 @@ function App() {
     }
     const allSections = [...document.querySelectorAll('main > section')]
     const flowSections = allSections.filter(section => section.id !== 'home')
-    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
     let previousScroll = window.scrollY
 
     allSections.forEach((section, index) => section.dataset.cinematicIndex = String(index))
     flowSections.forEach(section => {
-      section.classList.add('page-flow-section', 'cinematic-section')
+      section.classList.add('page-flow-section', 'cinematic-section', 'is-flow-visible')
       section.dataset.theme = themes[section.id]?.theme || 'violet'
       let layer = 0
       ;[...section.children].forEach(child => {
-        if (child.matches('.marquee-light-pillar, .about-profile-stars')) return
+        if (child.matches('.marquee-light-pillar, .deferred-light-pillar, .about-profile-stars')) return
         child.dataset.cinematicLayer = String(layer)
         layer += 1
       })
     })
 
-    let revealObserver
-    if (prefersReducedMotion) {
-      flowSections.forEach(section => section.classList.add('is-flow-visible'))
-    } else {
-      revealObserver = new IntersectionObserver(entries => {
-        entries.forEach(entry => {
-          if (!entry.isIntersecting) return
-          entry.target.classList.add('is-flow-visible')
-          revealObserver.unobserve(entry.target)
-        })
-      }, { rootMargin: '0px 0px -9% 0px', threshold: .07 })
-      flowSections.forEach(section => revealObserver.observe(section))
-    }
-
     let animationFrame = null
+    let lastClosestSection = null
     const updateScene = () => {
       animationFrame = null
+      // Read all section bounds before writing styles; avoid layout thrashing.
+      const scenes = allSections.map(section => ({ section, bounds: section.getBoundingClientRect() }))
       const scrollable = Math.max(document.documentElement.scrollHeight - window.innerHeight, 1)
       const progress = Math.min(Math.max(window.scrollY / scrollable, 0), 1)
       const direction = window.scrollY >= previousScroll ? 'down' : 'up'
       previousScroll = window.scrollY
       railRef.current?.style.setProperty('--rail-position', `${progress * 100}%`)
       document.documentElement.dataset.scrollDirection = direction
-
       const viewportMiddle = window.innerHeight * .5
       let closestSection = null
       let closestDistance = Number.POSITIVE_INFINITY
-      allSections.forEach(section => {
-        const bounds = section.getBoundingClientRect()
-        const centerOffset = ((bounds.top + bounds.bottom) * .5 - viewportMiddle) / Math.max(window.innerHeight, 1)
-        const shift = Math.min(Math.max(centerOffset, -1), 1)
-        const distanceFromCenter = Math.min(Math.abs(centerOffset), 1.25)
-        const focus = Math.min(Math.max(1 - distanceFromCenter * .82, 0), 1)
-        const cameraScale = 1 - Math.min(distanceFromCenter * .035, .045)
-        const cameraY = Math.min(Math.max(centerOffset * 24, -30), 30)
-        const cameraBrightness = .72 + focus * .28
-        const cameraBlur = Math.min((1 - focus) * .7, .85)
-        section.style.setProperty('--cinematic-focus', focus.toFixed(3))
-        section.style.setProperty('--cinematic-scale', cameraScale.toFixed(4))
-        section.style.setProperty('--cinematic-camera-y', `${cameraY.toFixed(2)}px`)
-        section.style.setProperty('--cinematic-brightness', cameraBrightness.toFixed(3))
-        section.style.setProperty('--cinematic-camera-blur', `${cameraBlur.toFixed(2)}px`)
-        if (section.classList.contains('cinematic-section')) {
-          ;[...section.querySelectorAll(':scope > [data-cinematic-layer]')].forEach((child, layer) => {
-            const drift = shift * (13 + Math.min(layer, 3) * 9)
-            child.style.setProperty('--cinematic-drift', `${drift.toFixed(2)}px`)
-            child.style.setProperty('--cinematic-scale', `${(.986 + focus * .014).toFixed(4)}`)
-          })
-        }
-        if (bounds.bottom < 0 || bounds.top > window.innerHeight) return
+      for (const { section, bounds } of scenes) {
+        if (bounds.bottom < 0 || bounds.top > window.innerHeight) continue
         const distance = Math.abs((bounds.top + bounds.bottom) * .5 - viewportMiddle)
         if (distance < closestDistance) { closestDistance = distance; closestSection = section }
-      })
-      if (!closestSection) return
+      }
+      if (!closestSection || closestSection === lastClosestSection) return
+      lastClosestSection = closestSection
       const current = themes[closestSection.id] || themes.home
-      const index = allSections.indexOf(closestSection)
-      setActiveTheme(previous => previous === current.theme ? previous : current.theme)
-      setActiveNav(previous => previous === current.nav ? previous : current.nav)
-      setActiveIndex(previous => previous === index ? previous : index)
+      setActiveTheme(current.theme)
+      setActiveNav(current.nav)
+      setActiveIndex(allSections.indexOf(closestSection))
       flowSections.forEach(section => section.classList.toggle('is-cinematic-active', section === closestSection))
     }
     const onScroll = () => { if (!animationFrame) animationFrame = requestAnimationFrame(updateScene) }
@@ -420,7 +398,6 @@ function App() {
     window.addEventListener('scroll', onScroll, { passive: true })
     window.addEventListener('resize', onScroll)
     return () => {
-      revealObserver?.disconnect()
       if (animationFrame) cancelAnimationFrame(animationFrame)
       window.removeEventListener('scroll', onScroll)
       window.removeEventListener('resize', onScroll)
@@ -428,4 +405,11 @@ function App() {
   }, [])
 
   return <><SiteNav isVisible={navVisible} activeNav={activeNav} theme={activeTheme} onContact={() => setContactOpen(true)} /><CinematicRail railRef={railRef} theme={activeTheme} activeIndex={activeIndex} isVisible={navVisible} /><div className="cinematic-atmosphere" data-theme={activeTheme} aria-hidden="true" /><main><Hero onReady={() => setNavVisible(true)} /><About /><Marquee /><Services /><Projects /><FifiGia /><AdvertisingFilms /><JiangxingShowcase /><FinalShowcase /></main>{contactOpen && <ContactModal onClose={() => setContactOpen(false)} />}</>
-}createRoot(document.getElementById('root')).render(<StrictMode><App /></StrictMode>)
+}
+const mount = () => createRoot(document.getElementById('root')).render(<StrictMode><VisualBoundary fallback={<PortfolioRecovery />}><App /></VisualBoundary></StrictMode>)
+const stylesheet = document.querySelector('link[data-app-styles]')
+if (stylesheet?.media === 'print') {
+  stylesheet.addEventListener('load', mount, { once: true })
+} else {
+  mount()
+}

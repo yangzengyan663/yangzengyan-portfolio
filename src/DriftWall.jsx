@@ -1,5 +1,6 @@
-import { useMemo } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { ArrowUpRight, Play } from 'lucide-react'
+import { isPlayerOpen } from './media'
 import './DriftWall.css'
 
 const clampColumns = value => Math.max(1, Math.min(8, Math.round(value || 1)))
@@ -28,6 +29,17 @@ export default function DriftWall({
   grayscale = false,
   onItemClick,
 }) {
+  const wallRef = useRef(null)
+  const [running, setRunning] = useState(false)
+  useEffect(() => {
+    let inView = false
+    const update = () => setRunning(inView && !document.hidden && !isPlayerOpen())
+    const observer = new IntersectionObserver(([entry]) => { inView = entry.isIntersecting; update() }, { rootMargin: '80px', threshold: .01 })
+    observer.observe(wallRef.current)
+    document.addEventListener('visibilitychange', update)
+    document.addEventListener('portfolio-player-change', update)
+    return () => { observer.disconnect(); document.removeEventListener('visibilitychange', update); document.removeEventListener('portfolio-player-change', update) }
+  }, [])
   const safeColumns = clampColumns(columns)
   const columnItems = useMemo(() => {
     if (!items.length) return []
@@ -56,7 +68,8 @@ export default function DriftWall({
   }
 
   return <div
-    className={`drift-wall ${pauseOnHover ? 'drift-wall-pause' : ''} ${grayscale ? 'drift-wall-grayscale' : ''}`}
+    ref={wallRef}
+    className={`drift-wall ${running ? 'is-running' : ''} ${pauseOnHover ? 'drift-wall-pause' : ''} ${grayscale ? 'drift-wall-grayscale' : ''}`}
     style={{
       '--drift-columns': safeColumns,
       '--drift-tile-width': `${tileWidth}px`,

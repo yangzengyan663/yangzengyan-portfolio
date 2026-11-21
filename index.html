@@ -4,10 +4,43 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#050505" />
+    <meta name="description" content="杨增延的 AIGC 视觉设计作品集：原创音乐 MV、动画短剧、传统文化影像与商业广告作品。" />
     <title>Yang Zengyan - Visual / AI / Brand Designer</title>
+    <style>
+      body{margin:0;background:#090610;color:#f5efff;font-family:system-ui,"Microsoft YaHei",sans-serif}
+      #root>.portfolio-recovery{box-sizing:border-box;max-width:880px;margin:auto;padding:clamp(32px,8vw,80px) 24px;line-height:1.8}
+      #root>.portfolio-recovery h1{font-size:clamp(28px,5vw,48px);line-height:1.3;color:#f5efff}
+      #root>.portfolio-recovery p{font-size:16px;color:#c9bfd8}
+      #root>.portfolio-recovery nav{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin:28px 0}
+      #root>.portfolio-recovery nav a{display:block;padding:16px;border:1px solid #684a87;border-radius:12px;background:#20132f;color:#f5efff;text-decoration:none;font-size:16px;font-weight:600}
+      #root>.portfolio-recovery a{color:#dfbaff}
+      #root>.portfolio-recovery a:focus-visible{outline:2px solid #dfbaff;outline-offset:4px}
+    </style>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <main class="portfolio-recovery">
+        <p>AIGC VISUAL DESIGNER</p>
+        <h1>杨增延 · 影像作品集</h1>
+        <p id="boot-note" role="status">作品集加载中，也可直接观看以下精选作品。</p>
+        <nav aria-label="直接观看作品">
+          <a href="/media/chinese-culture/jinshan.mp4?v=20261112">《金缮》</a>
+          <a href="/media/chinese-culture/new-li-bai.mp4?v=20261112">《迷雾中的古蜀》</a>
+          <a href="/media/digital-human-series/tjax-02.mp4?v=20261112">Quiet Mind · 音乐 MV</a>
+          <a href="/media/advertising-series/seagames-01.mp4?v=20261112">SeaGames · 产品宣传片</a>
+          <a href="/media/jiangxing-laptop/jiangxing-laptop-ad.mp4?v=20261112">《将星》广告短片</a>
+          <a href="/media/fifi-gia/ip-3.mp4?v=20261112">fifi_Gia · 虚拟角色影像</a>
+        </nav>
+        <p><a href="mailto:2206573527@qq.com">联系我</a> · <a href="/">重新打开完整作品集</a></p>
+        <noscript><p>可点击上方作品直接观看完整视频。</p></noscript>
+      </main>
+    </div>
+    <script>
+      window.setTimeout(function () {
+        var note = document.getElementById('boot-note');
+        if (note) note.textContent = '完整页面加载较慢，可先直接观看下面的作品。';
+      }, 8000);
+    </script>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>

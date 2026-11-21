@@ -741,3 +741,18 @@ html{font-size:clamp(.875rem,.76vw,1rem);overflow-x:clip}body,#root,main{inline-
 .video-buffering-status{position:absolute;z-index:2;top:18px;left:50%;transform:translateX(-50%);padding:9px 16px;border:1px solid #ccb2ed44;border-radius:999px;background:#10091ce6;color:#eee5fa;font-size:13px;pointer-events:none;white-space:nowrap}
 .short-drama-error>div{display:flex;gap:14px;align-items:center;pointer-events:auto}.short-drama-error button{padding:10px 13px;border:1px solid #d8b8ff73;border-radius:999px;color:#fff}
 .video-player-open .drift-wall-track,.video-player-open .cinematic-atmosphere{animation-play-state:paused!important}
+
+/* Keep content readable even when decoration, GPU support, or scrolling is slow. */
+.ambient-fallback,.web-threads-container{background:radial-gradient(ellipse at 28% 48%,#5227ff22,transparent 62%),radial-gradient(ellipse at 75% 35%,#ff9ffc13,transparent 60%)}
+.deferred-light-pillar{position:absolute!important;inset:0;z-index:0!important;pointer-events:none}
+.cinematic-section{filter:none!important;transform:none!important;will-change:auto!important}
+.cinematic-section>[data-cinematic-layer],.cinematic-section.is-flow-visible>[data-cinematic-layer]{opacity:1!important;filter:none!important;transform:none!important;will-change:auto!important;transition:none!important}
+.cinematic-section::after{animation-play-state:paused;will-change:auto}
+.cinematic-section.is-cinematic-active::after{animation-play-state:running}
+.video-player-open .cinematic-section::after{animation-play-state:paused!important}
+@media(prefers-reduced-motion:reduce),(max-width:767px){.cinematic-section::after,.cinematic-atmosphere{animation:none!important}}
+.portfolio-recovery{max-width:880px;margin:0 auto;padding:clamp(32px,8vw,100px) 24px;color:#f7f1ff;font:16px/1.8 system-ui,sans-serif}
+.portfolio-recovery h1{font-size:clamp(28px,5vw,52px);line-height:1.2;margin:20px 0}
+.portfolio-recovery p{margin:16px 0;color:#cfc1df}
+.portfolio-recovery nav{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;margin:32px 0}
+.portfolio-recovery a{color:#e0b8ff}.portfolio-recovery nav a{padding:18px;border:1px solid #c798ff44;border-radius:14px;background:#191021;text-decoration:none}

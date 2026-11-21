@@ -168,14 +168,17 @@ const WebThreads = ({
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
+    if (window.matchMedia('(prefers-reduced-motion: reduce), (max-width: 767px)').matches || navigator.connection?.saveData) return;
 
-    const renderer = new Renderer({
+    let renderer;
+    try { renderer = new Renderer({
       webgl: 2,
       alpha: true,
       premultipliedAlpha: true,
       antialias: false,
-      dpr: Math.min(window.devicePixelRatio || 1, 1.25)
-    });
+      powerPreference: 'low-power',
+      dpr: Math.min(1, 1400 / Math.max(container.clientWidth, container.clientHeight, 1))
+    }); } catch { return; }
 
     const gl = renderer.gl;
     gl.clearColor(0, 0, 0, 0);
@@ -244,6 +247,7 @@ const WebThreads = ({
     let targetActive = 0;
 
     const onMouseMove = e => {
+      if (!isVisible || !isPageVisible) return;
       const rect = canvas.getBoundingClientRect();
       targetMouse[0] = (e.clientX - rect.left) / rect.width;
       targetMouse[1] = 1.0 - (e.clientY - rect.top) / rect.height;
@@ -263,8 +267,12 @@ const WebThreads = ({
     let isVisible = true;
     let isPageVisible = !document.hidden && !isPlayerOpen();
     const t0 = performance.now();
+    let lastFrame = 0;
 
     const loop = t => {
+      if (gl.isContextLost()) { raf = 0; canvas.style.display = 'none'; return; }
+      if (t - lastFrame < 1000 / 30) { raf = requestAnimationFrame(loop); return; }
+      lastFrame = t;
       program.uniforms.iTime.value = (t - t0) * 0.001;
       currentMouse[0] += 0.05 * (targetMouse[0] - currentMouse[0]);
       currentMouse[1] += 0.05 * (targetMouse[1] - currentMouse[1]);
@@ -274,7 +282,7 @@ const WebThreads = ({
       program.uniforms.uMouseActive.value = currentActive;
       program.uniforms.uEnableMouse.value = mouseRef.current.enabled ? 1.0 : 0.0;
       program.uniforms.uMouseStrength.value = mouseRef.current.strength;
-      renderer.render({ scene: mesh });
+      try { renderer.render({ scene: mesh }); } catch { raf = 0; canvas.style.display = 'none'; return; }
       raf = requestAnimationFrame(loop);
     };
 
@@ -303,6 +311,8 @@ const WebThreads = ({
     };
     document.addEventListener('visibilitychange', onVisibility);
     document.addEventListener('portfolio-player-change', onVisibility);
+    const onContextLost = event => { event.preventDefault(); tryStop(); canvas.style.display = 'none'; };
+    canvas.addEventListener('webglcontextlost', onContextLost);
 
     tryStart();
 
@@ -312,6 +322,7 @@ const WebThreads = ({
       io.disconnect();
       document.removeEventListener('visibilitychange', onVisibility);
       document.removeEventListener('portfolio-player-change', onVisibility);
+      canvas.removeEventListener('webglcontextlost', onContextLost);
       window.removeEventListener('pointermove', onMouseMove);
       window.removeEventListener('blur', onMouseLeave);
       ctxMap.delete(container);

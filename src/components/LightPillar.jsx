@@ -32,14 +32,6 @@ const LightPillar = ({
   const [webGLSupported, setWebGLSupported] = useState(true);
 
   useEffect(() => {
-    const canvas = document.createElement('canvas');
-    const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
-    if (!gl) {
-      setWebGLSupported(false);
-    }
-  }, []);
-
-  useEffect(() => {
     if (!containerRef.current || !webGLSupported) return;
 
     const container = containerRef.current;
@@ -253,7 +245,7 @@ const LightPillar = ({
     }
 
     let lastTime = performance.now();
-    const targetFPS = effectiveQuality === 'low' ? 30 : 60;
+    const targetFPS = 30;
     const frameTime = 1000 / targetFPS;
     let isInView = false;
     let isPageVisible = !document.hidden && !isPlayerOpen();
@@ -266,12 +258,15 @@ const LightPillar = ({
       }
       const deltaTime = currentTime - lastTime;
       if (deltaTime >= frameTime) {
-        timeRef.current += 0.016 * rotationSpeedRef.current;
+        timeRef.current += Math.min(deltaTime, 100) * 0.001 * rotationSpeedRef.current;
         const t = timeRef.current;
         materialRef.current.uniforms.uTime.value = t;
         materialRef.current.uniforms.uRotCos.value = Math.cos(t * 0.3);
         materialRef.current.uniforms.uRotSin.value = Math.sin(t * 0.3);
-        rendererRef.current.render(sceneRef.current, cameraRef.current);
+        try {
+          if (rendererRef.current.getContext().isContextLost()) { setWebGLSupported(false); return; }
+          rendererRef.current.render(sceneRef.current, cameraRef.current);
+        } catch { setWebGLSupported(false); return; }
         lastTime = currentTime - (deltaTime % frameTime);
       }
       rafRef.current = requestAnimationFrame(animate);
@@ -283,6 +278,8 @@ const LightPillar = ({
       if (rafRef.current) cancelAnimationFrame(rafRef.current);
       rafRef.current = null;
     };
+    const onContextLost = event => { event.preventDefault(); stopAnimation(); setWebGLSupported(false); };
+    renderer.domElement.addEventListener('webglcontextlost', onContextLost);
     const visibilityObserver = new IntersectionObserver(([entry]) => {
       isInView = entry.isIntersecting;
       isInView ? startAnimation() : stopAnimation();
@@ -314,6 +311,8 @@ const LightPillar = ({
 
     return () => {
       disposed = true;
+      clearTimeout(mouseMoveTimeout);
+      clearTimeout(resizeTimeout);
       visibilityObserver.disconnect();
       document.removeEventListener('visibilitychange', handlePageVisibility);
       document.removeEventListener('portfolio-player-change', handlePageVisibility);
@@ -325,6 +324,7 @@ const LightPillar = ({
         cancelAnimationFrame(rafRef.current);
       }
       if (rendererRef.current) {
+        rendererRef.current.domElement.removeEventListener('webglcontextlost', onContextLost);
         rendererRef.current.dispose();
         rendererRef.current.forceContextLoss();
         if (container.contains(rendererRef.current.domElement)) {
@@ -409,9 +409,7 @@ const LightPillar = ({
 
   if (!webGLSupported) {
     return (
-      <div className={`light-pillar-fallback ${className}`} style={{ mixBlendMode }}>
-        WebGL not supported
-      </div>
+      <div className={`light-pillar-fallback ${className}`} style={{ mixBlendMode }} aria-hidden="true" />
     );
   }
 
