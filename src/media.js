@@ -13,6 +13,42 @@ const previewNames = {
 }
 
 export const playbackUrl = video => video.startsWith('/videos/') ? video.replace('/videos/', '/media/') + '?v=20261112' : video
+const githubMediaRoot = 'https://raw.githubusercontent.com/yangzengyan663/yangzengyan-portfolio/main/public'
+let preferredProvider
+export const playbackCandidates = video => video.startsWith('/videos/')
+  ? [playbackUrl(video), `${githubMediaRoot}${video}?v=20261112`]
+  : [playbackUrl(video)]
+const provider = url => url.startsWith(githubMediaRoot) ? 'github' : 'origin'
+export const rememberPlaybackSource = url => { preferredProvider = provider(url) }
+
+// Probe only 4 KB on the first play. Later films reuse the provider that played.
+export async function choosePlaybackSources(video, signal) {
+  const sources = playbackCandidates(video)
+  if (sources.length < 2) return sources
+  const first = preferredProvider && sources.find(url => provider(url) === preferredProvider)
+  if (first) return [first, ...sources.filter(url => url !== first)]
+  const probes = sources.map(() => new AbortController())
+  const abort = () => probes.forEach(controller => controller.abort())
+  signal.addEventListener('abort', abort, { once: true })
+  let timer
+  try {
+    const winner = await Promise.race([
+      Promise.any(sources.map(async (url, index) => {
+        const response = await fetch(url, { headers: { Range: 'bytes=0-4095' }, signal: probes[index].signal })
+        if (response.status !== 206) { response.body?.cancel().catch(() => {}); throw new Error('Video source unavailable') }
+        const bytes = new Uint8Array(await response.arrayBuffer())
+        if (bytes.length < 8 || String.fromCharCode(...bytes.slice(4, 8)) !== 'ftyp') throw new Error('Invalid video response')
+        return url
+      })).catch(() => sources[1]),
+      new Promise(resolve => { timer = window.setTimeout(() => resolve(sources[1]), 1800) }),
+    ])
+    return [winner, ...sources.filter(url => url !== winner)]
+  } finally {
+    clearTimeout(timer)
+    abort()
+    signal.removeEventListener('abort', abort)
+  }
+}
 export const previewUrl = video => previewNames[video]
   ? `/media-previews/${previewNames[video]}.mp4`
   : video.includes('/digital-human-series/') ? video.replace('/digital-human-series/', '/digital-human-previews/') : undefined
