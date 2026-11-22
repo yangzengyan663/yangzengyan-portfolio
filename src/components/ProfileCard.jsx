@@ -1,5 +1,6 @@
 import { memo, useCallback, useEffect, useMemo, useRef } from 'react'
 import { ArrowUpRight } from 'lucide-react'
+import LazyImage from '../LazyImage'
 import './ProfileCard.css'
 
 const clamp = (value, minimum = 0, maximum = 100) => Math.min(Math.max(value, minimum), maximum)
@@ -168,11 +169,11 @@ function ProfileCard({
           <span className="pc-grid" />
           <span className="pc-shine" />
           <span className="pc-glare" />
-          <div className="pc-avatar-content"><img className="pc-avatar" src={avatarUrl} alt={`${name} portrait`} loading="lazy" /></div>
+          <div className="pc-avatar-content"><LazyImage className="pc-avatar" src={avatarUrl} alt={`${name} portrait`} /></div>
           <div className="pc-details"><h3>{name}</h3><p>{title}</p></div>
           {showUserInfo && <div className="pc-user-info">
             <div className="pc-user-details">
-              <span className="pc-mini-avatar"><img src={miniAvatarUrl || avatarUrl} alt="" /></span>
+              <span className="pc-mini-avatar"><LazyImage src={miniAvatarUrl || avatarUrl} alt="" /></span>
               <span className="pc-user-text"><strong>{handle}</strong><small>{status}</small></span>
             </div>
             <button className="pc-contact-btn" type="button" onClick={onContactClick}>{contactText}<ArrowUpRight size={15} /></button>

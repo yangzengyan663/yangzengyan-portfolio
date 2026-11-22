@@ -88,8 +88,12 @@ export const previewUrl = video => previewNames[video]
   : video.includes('/digital-human-series/') ? video.replace('/digital-human-series/', '/digital-human-previews/') : undefined
 export const previewPoster = video => {
   if (previewNames[video]) return `/media-previews/${previewNames[video]}.jpg`
+  const music = /^\/videos\/digital-human-series\/([^/]+)\.mp4$/.exec(video)
+  if (music) return `/media-previews/mv-${music[1]}.webp`
   const fifi = /\/fifi-gia\/ip-(\d)/.exec(video)
-  return fifi ? `/images/fifi-gia-film-${fifi[1]}-cover.webp` : undefined
+  if (fifi) return `/images/fifi-gia-film-${fifi[1]}-cover.webp`
+  const advertising = /^\/videos\/advertising-series\/ad-(\d)\.mp4$/.exec(video)
+  return advertising ? `/images/advertising-series/ad-${advertising[1]}-cover.webp` : undefined
 }
 
 let playerOpen = false
