@@ -1,14 +1,8 @@
 import { defineConfig } from 'vite'
+import { inlinePortfolioShell } from './scripts/inline-shell.mjs'
 
 export default defineConfig({
-  plugins: [{
-    name: 'non-blocking-portfolio-styles',
-    transformIndexHtml: {
-      order: 'post',
-      handler: html => html.replace(/<link\b[^>]*rel="stylesheet"[^>]*>/g, tag =>
-        tag.replace('rel="stylesheet"', 'rel="stylesheet" data-app-styles media="print" onload="this.media=\'all\'"')),
-    },
-  }],
+  plugins: [inlinePortfolioShell()],
   server: {
     host: '0.0.0.0',
     allowedHosts: true,

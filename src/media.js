@@ -15,21 +15,43 @@ const previewNames = {
 export const playbackUrl = video => video.startsWith('/videos/') ? video.replace('/videos/', '/media/') + '?v=20261112' : video
 const githubMediaRoot = 'https://raw.githubusercontent.com/yangzengyan663/yangzengyan-portfolio/main/public'
 let preferredProvider
+const failedProviders = new Map()
+const preferenceLifetime = 2 * 60 * 1000
+const failureCooldown = 30 * 1000
 export const playbackCandidates = video => video.startsWith('/videos/')
   ? [playbackUrl(video), `${githubMediaRoot}${video}?v=20261112`]
   : [playbackUrl(video)]
 const provider = url => url.startsWith(githubMediaRoot) ? 'github' : 'origin'
-export const rememberPlaybackSource = url => { preferredProvider = provider(url) }
-
-// Probe only 4 KB on the first play. Later films reuse the provider that played.
-export async function choosePlaybackSources(video, signal) {
+export const rememberPlaybackSource = url => {
+  const name = provider(url)
+  preferredProvider = { name, until: Date.now() + preferenceLifetime }
+  failedProviders.delete(name)
+}
+export const forgetPlaybackSource = url => {
+  const name = provider(url)
+  if (preferredProvider?.name === name) preferredProvider = undefined
+  failedProviders.set(name, Date.now() + failureCooldown)
+}
+export function orderedPlaybackSources(video) {
   const sources = playbackCandidates(video)
+  const now = Date.now()
+  if (preferredProvider?.until <= now) preferredProvider = undefined
+  return sources.sort((a, b) => {
+    const priority = url => failedProviders.get(provider(url)) > now ? 2 : preferredProvider?.name === provider(url) ? 0 : 1
+    return priority(a) - priority(b)
+  })
+}
+
+// This runs alongside native playback, never before assigning the video's src.
+// Only probe 4 KB; abort all work once a film starts or the player closes.
+export async function choosePlaybackSources(video, signal) {
+  signal.throwIfAborted()
+  const sources = orderedPlaybackSources(video)
   if (sources.length < 2) return sources
-  const first = preferredProvider && sources.find(url => provider(url) === preferredProvider)
-  if (first) return [first, ...sources.filter(url => url !== first)]
+  if (preferredProvider?.name === provider(sources[0])) return sources
   const probes = sources.map(() => new AbortController())
-  const abort = () => probes.forEach(controller => controller.abort())
-  signal.addEventListener('abort', abort, { once: true })
+  const stopProbes = () => probes.forEach(controller => controller.abort())
+  let onAbort
   let timer
   try {
     const winner = await Promise.race([
@@ -39,15 +61,27 @@ export async function choosePlaybackSources(video, signal) {
         const bytes = new Uint8Array(await response.arrayBuffer())
         if (bytes.length < 8 || String.fromCharCode(...bytes.slice(4, 8)) !== 'ftyp') throw new Error('Invalid video response')
         return url
-      })).catch(() => sources[1]),
-      new Promise(resolve => { timer = window.setTimeout(() => resolve(sources[1]), 1800) }),
+      })).catch(() => sources[0]),
+      new Promise(resolve => { timer = globalThis.setTimeout(() => resolve(sources[0]), 1800) }),
+      new Promise((_, reject) => {
+        onAbort = () => { stopProbes(); reject(signal.reason || new DOMException('Playback selection aborted', 'AbortError')) }
+        signal.addEventListener('abort', onAbort, { once: true })
+      }),
     ])
+    signal.throwIfAborted()
     return [winner, ...sources.filter(url => url !== winner)]
   } finally {
     clearTimeout(timer)
-    abort()
-    signal.removeEventListener('abort', abort)
+    stopProbes()
+    signal.removeEventListener('abort', onAbort)
   }
+}
+
+export const reducePreviewTraffic = () => {
+  const connection = navigator.connection
+  return document.documentElement.dataset.connectionMode === 'lite'
+    || Boolean(connection?.saveData)
+    || ['slow-2g', '2g', '3g'].includes(connection?.effectiveType)
 }
 export const previewUrl = video => previewNames[video]
   ? `/media-previews/${previewNames[video]}.mp4`

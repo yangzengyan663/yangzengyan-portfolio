@@ -4,6 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#050505" />
+    <meta name="portfolio-build" content="20261122-progressive-shell" />
     <meta name="description" content="杨增延的 AIGC 视觉设计作品集：原创音乐 MV、动画短剧、传统文化影像与商业广告作品。" />
     <title>Yang Zengyan - Visual / AI / Brand Designer</title>
     <style>
@@ -15,6 +16,8 @@
       #root>.portfolio-recovery nav a{display:block;padding:16px;border:1px solid #684a87;border-radius:12px;background:#20132f;color:#f5efff;text-decoration:none;font-size:16px;font-weight:600}
       #root>.portfolio-recovery a{color:#dfbaff}
       #root>.portfolio-recovery a:focus-visible{outline:2px solid #dfbaff;outline-offset:4px}
+      #root>.portfolio-recovery details{margin-top:28px;border-top:1px solid #684a87;padding-top:20px}
+      #root>.portfolio-recovery summary{cursor:pointer;font-size:18px;font-weight:600;color:#f5efff}
     </style>
   </head>
   <body>
@@ -22,7 +25,7 @@
       <main class="portfolio-recovery">
         <p>AIGC VISUAL DESIGNER</p>
         <h1>杨增延 · 影像作品集</h1>
-        <p id="boot-note" role="status">作品集加载中，也可直接观看以下精选作品。</p>
+        <p id="boot-note" role="status">AIGC 视觉设计 · AI 视频、品牌影像与社交媒体内容。可直接观看下方作品。</p>
         <nav aria-label="直接观看作品">
           <a href="/media/chinese-culture/jinshan.mp4?v=20261112">《金缮》</a>
           <a href="/media/chinese-culture/new-li-bai.mp4?v=20261112">《迷雾中的古蜀》</a>
@@ -31,15 +34,42 @@
           <a href="/media/jiangxing-laptop/jiangxing-laptop-ad.mp4?v=20261112">《将星》广告短片</a>
           <a href="/media/fifi-gia/ip-3.mp4?v=20261112">fifi_Gia · 虚拟角色影像</a>
         </nav>
+        <details>
+          <summary>浏览更多作品（22 部）</summary>
+          <nav aria-label="更多影像作品">
+            <a href="/media/digital-human-series/luna.mp4?v=20261112">LUNA · 音乐 MV</a>
+            <a href="/media/digital-human-series/marcus-saint-01.mp4?v=20261112">MARCUS SAINT 01 · 音乐 MV</a>
+            <a href="/media/digital-human-series/marcus-saint-02.mp4?v=20261112">MARCUS SAINT 02 · 音乐 MV</a>
+            <a href="/media/digital-human-series/marcus-saint-03.mp4?v=20261112">MARCUS SAINT 03 · 音乐 MV</a>
+            <a href="/media/digital-human-series/milo.mp4?v=20261112">MILO · 音乐 MV</a>
+            <a href="/media/digital-human-series/olila.mp4?v=20261112">OLILA · 音乐 MV</a>
+            <a href="/media/digital-human-series/seraphina.mp4?v=20261112">SERAPHINA · 音乐 MV</a>
+            <a href="/media/digital-human-series/soren.mp4?v=20261112">SOREN · 音乐 MV</a>
+            <a href="/media/digital-human-series/tjax.mp4?v=20261112">TJAX · 音乐 MV</a>
+            <a href="/media/cup-people/1.mp4?v=20261112">《杯具人》01</a>
+            <a href="/media/cup-people/2.mp4?v=20261112">《杯具人》02</a>
+            <a href="/media/cup-people/3.mp4?v=20261112">《杯具人》03</a>
+            <a href="/media/cup-people/4.mp4?v=20261112">《杯具人》04</a>
+            <a href="/media/cup-people/cup-person-part-1.mp4?v=20261112">《杯具人》特别篇</a>
+            <a href="/media/fifi-gia/ip-1-compatible.mp4?v=20261112">fifi_Gia · FILM 01</a>
+            <a href="/media/fifi-gia/ip-2.mp4?v=20261112">黑白造境 · 时装短片</a>
+            <a href="/media/fifi-gia/ip-4.mp4?v=20261112">色彩肖像 · 时尚短片</a>
+            <a href="/media/advertising-series/ad-4.mp4?v=20261112">六神花露水 · 清凉驱蚊</a>
+            <a href="/media/advertising-series/ad-1.mp4?v=20261112">小熊猫的海岛假日</a>
+            <a href="/media/advertising-series/ad-2.mp4?v=20261112">SeaArt · 分层创意编辑</a>
+            <a href="/media/advertising-series/ad-3.mp4?v=20261112">赛博角色 · 从设定到场景</a>
+            <a href="/media/advertising-series/seagames-02.mp4?v=20261112">SeaGames · 产品宣传片 02</a>
+          </nav>
+        </details>
         <p><a href="mailto:2206573527@qq.com">联系我</a> · <a href="/">重新打开完整作品集</a></p>
         <noscript><p>可点击上方作品直接观看完整视频。</p></noscript>
       </main>
     </div>
     <script>
-      window.setTimeout(function () {
-        var note = document.getElementById('boot-note');
-        if (note) note.textContent = '完整页面加载较慢，可先直接观看下面的作品。';
-      }, 8000);
+      var connection = navigator.connection;
+      if (connection && (connection.saveData || /(^|-)2g$|3g/.test(connection.effectiveType || ''))) {
+        document.documentElement.dataset.connectionMode = 'lite';
+      }
     </script>
     <script type="module" src="/src/main.jsx"></script>
   </body>

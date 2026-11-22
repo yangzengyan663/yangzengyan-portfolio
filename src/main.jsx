@@ -243,57 +243,16 @@ function AdvertisingFilms() {
   const openProject = item => setSelectedProject({ label: item.title, video: item.href, cover: item.image })
   return <section id="final-showcase" className="final-showcase"><div className="final-showcase-head"><span>06 / FINAL SHOWCASE</span><div><h2>更多<em>影像作品</em></h2><p>其他数字人音乐影像、品牌与社媒短片，以及 fifi_Gia IP 账号内容。点击作品可观看完整视频。</p></div></div><div className="final-showcase-wall" style={{ height: 600 }}><DriftWall items={finalShowcaseItems} columns={5} tileWidth={200} tileHeight={124} gap={16} tilt={16} turn={-8} perspective={1200} depth={120} speed={42} direction="up" variance={0.45} parallax={0.6} lift={48} fade={0.2} dim={0.65} overlayColor="#060010" radius={15} roll={0} pauseOnHover={false} grayscale={false} onItemClick={openProject} /></div><div className="final-showcase-foot"><span>{String(finalShowcaseItems.length).padStart(2, "0")} FILMS / SELECTED ARCHIVE</span><span>CLICK TO PLAY <ArrowUpRight size={14} /></span></div>{selectedProject && <ShortDramaModal project={selectedProject} onClose={() => setSelectedProject(null)} />}</section>
 }function Hero({ onReady }) {
-  const [progress, setProgress] = useState(0)
-  const [ready, setReady] = useState(false)
-  const [cardSequence, setCardSequence] = useState('dormant')
+  const ready = true
+  const cardSequence = 'settled'
   const go = id => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' })
-
-  useEffect(() => {
-    const duration = 650
-    const startedAt = performance.now()
-    let frameId, finishTimer, deadline
-    let finished = false
-    const complete = () => {
-      if (finished) return
-      finished = true
-      clearTimeout(deadline)
-      setProgress(100)
-      setReady(true)
-      onReady?.()
-    }
-    const tick = now => {
-      if (finished) return
-      const elapsed = Math.min((now - startedAt) / duration, 1)
-      const eased = 1 - Math.pow(1 - elapsed, 3)
-      setProgress(Math.round(eased * 100))
-      if (elapsed < 1) frameId = requestAnimationFrame(tick)
-      else finishTimer = window.setTimeout(complete, 80)
-    }
-    deadline = window.setTimeout(complete, 1400)
-    frameId = requestAnimationFrame(tick)
-    return () => { finished = true; cancelAnimationFrame(frameId); clearTimeout(finishTimer); clearTimeout(deadline) }
-  }, [])
-
-  useEffect(() => {
-    if (!ready) return undefined
-    const unfoldTimer = window.setTimeout(() => setCardSequence('unfolding'), 1380)
-    const settleTimer = window.setTimeout(() => setCardSequence('settled'), 2480)
-    return () => {
-      window.clearTimeout(unfoldTimer)
-      window.clearTimeout(settleTimer)
-    }
-  }, [ready])
-
+  useEffect(() => { onReady?.() }, [])
   return <section id="home" className={`reference-hero ${ready ? 'is-ready' : ''}`}>
     <VisualBoundary fallback={<div className="web-threads-container ambient-fallback" aria-hidden="true" />}><WebThreads color1="#5227FF" color2="#FF9FFC" color3="#FFFFFF" speed={0.2} threadCount={6} frequency={5} spread={0.18} taper={1} position={0.5} fanMode="center" glow={0.02} falloff={0.6} thickness={1.1} brightness={0.6} opacity={1} mirror shimmer={false} grain grainIntensity={0.05} mouseInteraction mouseStrength={0.3} /></VisualBoundary>
     <div className="reference-noise" />
     <div className="reference-orb reference-orb-left" />
     <div className="reference-orb reference-orb-right" />
     <div className="reference-grid" />
-    <div className={`hero-loader ${ready ? 'is-hidden' : ''}`} aria-hidden={ready} style={{ '--loader-progress': progress / 100 }}>
-      <span>{progress}%</span>
-      <div className="hero-loader-rule" />
-    </div>
 
     <div className="reference-hero-copy">
       <div className="reference-eyebrow"><span /> VISUAL DESIGNER <i /> AI CREATOR</div>
@@ -401,9 +360,4 @@ function App() {
   return <><SiteNav isVisible={navVisible} activeNav={activeNav} theme={activeTheme} onContact={() => setContactOpen(true)} /><CinematicRail railRef={railRef} theme={activeTheme} activeIndex={activeIndex} isVisible={navVisible} /><div className="cinematic-atmosphere" data-theme={activeTheme} aria-hidden="true" /><main><Hero onReady={() => setNavVisible(true)} /><About /><Marquee /><Services /><Projects /><FifiGia /><AdvertisingFilms /><JiangxingShowcase /><FinalShowcase /></main>{contactOpen && <ContactModal onClose={() => setContactOpen(false)} />}</>
 }
 const mount = () => createRoot(document.getElementById('root')).render(<StrictMode><VisualBoundary fallback={<PortfolioRecovery />}><App /></VisualBoundary></StrictMode>)
-const stylesheet = document.querySelector('link[data-app-styles]')
-if (stylesheet?.media === 'print') {
-  stylesheet.addEventListener('load', mount, { once: true })
-} else {
-  mount()
-}
+mount()
