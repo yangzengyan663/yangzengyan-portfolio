@@ -758,5 +758,5 @@ html{font-size:clamp(.875rem,.76vw,1rem);overflow-x:clip}body,#root,main{inline-
 .portfolio-recovery a{color:#e0b8ff}.portfolio-recovery nav a{padding:18px;border:1px solid #c798ff44;border-radius:14px;background:#191021;text-decoration:none}
 .video-slow-status{position:absolute;z-index:3;bottom:4.5rem;left:50%;transform:translateX(-50%);display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:10px;box-sizing:border-box;max-width:calc(100% - 24px);width:max-content;padding:12px 16px;border:1px solid #ccb2ed55;border-radius:14px;background:#10091cf2;color:#eee5fa;font-size:14px;text-align:center}
 .video-slow-status button,.video-slow-status a{border:1px solid #d8b8ff73;border-radius:999px;padding:7px 12px;color:#eee5fa;text-decoration:none;font:inherit;cursor:pointer}
-`n/* Keep the first heading readable while optional ambient animation starts. */
+/* Keep the first heading readable while optional ambient animation starts. */
 .reference-hero.is-ready .reference-hero-copy .title-line{opacity:1;transform:none;filter:none;animation:none;will-change:auto}

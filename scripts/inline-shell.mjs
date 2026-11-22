@@ -11,7 +11,7 @@ export function inlinePortfolioShell() {
     apply: 'build',
     enforce: 'post',
     configResolved(value) { config = value },
-    async closeBundle() {
+    async writeBundle() {
       const directory = path.resolve(config.root, config.build.outDir)
       const indexPath = path.join(directory, 'index.html')
       let html = await readFile(indexPath, 'utf8')
