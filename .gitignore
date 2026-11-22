@@ -7,3 +7,4 @@ tmp-reference-frames/
 .env
 .env.*
 !.env.example
+quick-dist/
