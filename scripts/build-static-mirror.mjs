@@ -21,9 +21,11 @@ async function removeUnusedPreviews(directory) {
   }
 }
 await removeUnusedPreviews(path.join(output, 'media-previews'))
-const source = await readFile('index.html', 'utf8')
-const films = [...source.matchAll(/href="\/media\/([^"?]+)\?/g)].map(match => match[1])
-if (new Set(films).size !== 28) throw new Error('Expected all 28 original films')
-await Promise.all([...films.map(film => path.join(output, 'videos', film)), path.join(output, 'mark.svg')].map(filename => access(filename)))
+const films = JSON.parse(await readFile(new URL('./portfolio-films.json', import.meta.url), 'utf8'))
+if (!Array.isArray(films) || films.length !== 28 || new Set(films).size !== 28
+  || films.some(film => !/^\/videos\/[\w /.-]+\.mp4$/.test(film) || film.split('/').includes('..'))) {
+  throw new Error('Expected all 28 canonical original films in portfolio-films.json')
+}
+await Promise.all([...films.map(film => path.join(output, film.slice(1))), path.join(output, 'mark.svg')].map(filename => access(filename)))
 await writeFile(path.join(output, '.nojekyll'), '')
 console.log('Original portfolio mirror ready: all 28 films, image-first gallery, original effects.')

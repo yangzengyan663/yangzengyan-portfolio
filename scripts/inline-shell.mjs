@@ -36,13 +36,13 @@ export function inlinePortfolioShell() {
       }
       const moduleUrl = 'data:text/javascript;charset=utf-8,' + encodeURIComponent(javascript)
       const map = JSON.stringify({ imports: { [entry[1]]: moduleUrl } }).replace(/</g, '\\u003c')
-      const boot = `<script type="importmap">${map}</script>\n<script type="module">import(${JSON.stringify(entry[1])}).catch(()=>{const note=document.getElementById('boot-note');if(note)note.textContent='可直接观看下面的作品，也可重新打开完整作品集。';});</script>`
+      const boot = `<script type="importmap">${map}</script>\n<script type="module">import(${JSON.stringify(entry[1])}).catch(()=>window.__portfolioOpening?.fail());</script>`
       html = html.replace(entry[0], '')
       const styles = [...html.matchAll(/<link\b[^>]*\brel="stylesheet"[^>]*\bhref="([^"]+)"[^>]*>/g)]
       for (const style of styles) {
         const css = (await readFile(asset(style[1]), 'utf8')).replace(/<\/style/gi, '<\\/style')
         html = html.replace(style[0], '')
-        // Put the readable static content before the full visual stylesheet.
+        // Show the original opening counter before the full visual stylesheet.
         html = html.replace('</body>', `<style data-app-styles>${css}</style>\n</body>`)
       }
       html = html.replace('</body>', boot + '\n</body>')

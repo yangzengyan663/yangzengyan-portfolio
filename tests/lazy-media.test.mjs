@@ -45,9 +45,12 @@ const watch = (...args) => { const close = observeNearViewport(...args); cleanup
 const imgTag = markup => markup.match(/<img\b[^>]*>/)?.[0]
 
 test('every film in the original portfolio has a real inline first-frame placeholder', async () => {
-  const html = await readFile(new URL('../index.html', import.meta.url), 'utf8')
-  const films = [...html.matchAll(/href="(\/media\/[^"?]+)/g)].map(match => match[1].replace('/media/', '/videos/'))
+  const films = JSON.parse(await readFile(new URL('../scripts/portfolio-films.json', import.meta.url), 'utf8'))
+  const main = await readFile(new URL('../src/main.jsx', import.meta.url), 'utf8')
+  const renderedFilms = new Set([...main.matchAll(/\bvideo:\s*['"](\/videos\/[^'"]+\.mp4)['"]/g)].map(match => match[1]))
+  assert.equal(films.length, 28)
   assert.equal(new Set(films).size, 28)
+  assert.deepEqual(new Set(films), renderedFilms, 'The manifest must cover exactly the original UI films')
   for (const film of films) {
     const poster = previewPoster(film)
     assert.ok(poster, film)

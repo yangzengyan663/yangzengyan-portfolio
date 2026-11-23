@@ -246,7 +246,16 @@ function AdvertisingFilms() {
   const ready = true
   const cardSequence = 'settled'
   const go = id => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' })
-  useEffect(() => { onReady?.() }, [])
+  useEffect(() => {
+    const reveal = () => onReady?.()
+    const opening = window.__portfolioOpening
+    if (!opening || opening.isFinished()) reveal()
+    else {
+      document.addEventListener('portfolio-opening-finished', reveal, { once: true })
+      opening.ready([...document.querySelectorAll('#home .reference-center-cover')])
+    }
+    return () => document.removeEventListener('portfolio-opening-finished', reveal)
+  }, [])
   return <section id="home" className={`reference-hero ${ready ? 'is-ready' : ''}`}>
     <VisualBoundary fallback={<div className="web-threads-container ambient-fallback" aria-hidden="true" />}><WebThreads color1="#5227FF" color2="#FF9FFC" color3="#FFFFFF" speed={0.2} threadCount={6} frequency={5} spread={0.18} taper={1} position={0.5} fanMode="center" glow={0.02} falloff={0.6} thickness={1.1} brightness={0.6} opacity={1} mirror shimmer={false} grain grainIntensity={0.05} mouseInteraction mouseStrength={0.3} /></VisualBoundary>
     <div className="reference-noise" />

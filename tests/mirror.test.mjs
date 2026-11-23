@@ -12,9 +12,9 @@ const base = '/yangzengyan-portfolio/'
 const root = fileURLToPath(new URL('../', import.meta.url))
 const directory = path.join(root, process.env.MIRROR_BUILD_DIR || 'dist-github')
 const html = fs.readFileSync(path.join(directory, 'index.html'), 'utf8')
-const sourceHtml = fs.readFileSync(path.join(root, 'index.html'), 'utf8')
 const mainSource = fs.readFileSync(path.join(root, 'src/main.jsx'), 'utf8')
-const films = [...new Set([...sourceHtml.matchAll(/href="\/media\/([^"?]+\.mp4)\?v=/g)].map(match => '/videos/' + match[1]))]
+const films = JSON.parse(fs.readFileSync(path.join(root, 'scripts/portfolio-films.json'), 'utf8'))
+const initialMarkup = html.replace(/<script\b[^>]*>[\s\S]*?<\/script>/g, '')
 const importmap = JSON.parse(html.match(/<script type="importmap">([\s\S]*?)<\/script>/)[1])
 const [[entry, moduleUrl]] = Object.entries(importmap.imports)
 const code = decodeURIComponent(moduleUrl.slice(moduleUrl.indexOf(',') + 1))
@@ -34,16 +34,19 @@ const mirrorPaths = await import(mirrorPathsUrl)
 const mediaCode = fs.readFileSync(path.join(root, 'src/media.js'), 'utf8').replace("'./assetPaths.js'", JSON.stringify(mirrorPathsUrl))
 const mirrorMedia = await import(moduleDataUrl(mediaCode))
 
-test('mirror keeps all 28 fallback films, the project restart link, and the full original shell', () => {
+test('mirror keeps the original counter and complete original UI without an initial lightweight list', () => {
   assert.equal(films.length, 28)
-  const links = [...html.matchAll(/href="([^"<>]+\.mp4\?v=20261112)"/g)].map(match => match[1])
-  assert.deepEqual(new Set(links), new Set(films.map(film => base + film.slice(1) + '?v=20261112')))
-  assert.equal(links.length, 28)
-  assert.ok(html.includes(`href="${base}"`))
-  assert.ok(html.includes('mailto:2206573527@qq.com'))
-  assert.ok(!/href="\/(?:media\/|")/.test(html))
+  assert.equal(new Set(films).size, 28)
+  const renderedFilms = new Set([...mainSource.matchAll(/\bvideo:\s*['"](\/videos\/[^'"]+\.mp4)['"]/g)].map(match => match[1]))
+  assert.deepEqual(new Set(films), renderedFilms)
+  assert.match(initialMarkup, /<div\b[^>]*id="root"[^>]*>\s*<\/div>/)
+  assert.match(initialMarkup, /id="opening-loader"/)
+  assert.match(initialMarkup.slice(initialMarkup.indexOf('id="opening-loader"')), />\s*0(?:\s*%|\s*<)/)
+  assert.doesNotMatch(initialMarkup, /<[^>]+class=["'][^"']*portfolio-recovery/)
+  assert.doesNotMatch(initialMarkup, /href=["'][^"']*\.mp4(?:\?|["'])/)
+  for (const film of films) assert.ok(code.includes(film), 'Film missing from the original application: ' + film)
   for (const originalClass of ['reference-hero-copy', 'about-profile', 'mv-film-grid', 'culture-projects', 'fifi-gia', 'jiangxing-showcase', 'final-showcase']) {
-    assert.ok(code.includes(originalClass), `original section missing: ${originalClass}`)
+    assert.ok(code.includes(originalClass), 'Original section missing: ' + originalClass)
   }
 })
 
@@ -125,6 +128,7 @@ test('the final mirror package contains every primary film, visible image, poste
   const required = new Set(['/mark.svg'])
   for (const film of films) { required.add(film); required.add(mirrorMedia.previewPoster(film)) }
   for (const match of mainSource.matchAll(/['"`](\/(?:images|media-previews)\/[^'"`$]+)['"`]/g)) {
+    required.add(match[1]) // Retain the click-opened original image as well as its thumbnail.
     required.add(defaultMedia.thumbnailUrl(match[1]))
   }
   const missing = [...required].filter(href => !nonemptyFile(diskPath(mirrorPaths.assetUrl(href))))
