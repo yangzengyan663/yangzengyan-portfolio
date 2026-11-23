@@ -1,4 +1,6 @@
-// Full films use a byte-range endpoint; gallery motion uses small silent clips.
+import { assetUrl, staticMirror } from './assetPaths.js'
+
+// Full films are requested only after a visitor opens the player.
 const previewNames = {
   '/videos/cup-people/1.mp4': 'cup-1',
   '/videos/cup-people/2.mp4': 'cup-2',
@@ -12,16 +14,18 @@ const previewNames = {
   '/videos/jiangxing-laptop/jiangxing-laptop-ad.mp4': 'jiangxing',
 }
 
-export const playbackUrl = video => video.startsWith('/videos/') ? video.replace('/videos/', '/media/') + '?v=20261112' : video
+export const playbackUrl = video => video.startsWith('/videos/')
+  ? (staticMirror ? assetUrl(video) : video.replace('/videos/', '/media/')) + '?v=20261112'
+  : video
 const githubMediaRoot = 'https://raw.githubusercontent.com/yangzengyan663/yangzengyan-portfolio/main/public'
 let preferredProvider
 const failedProviders = new Map()
 const preferenceLifetime = 2 * 60 * 1000
 const failureCooldown = 30 * 1000
 export const playbackCandidates = video => video.startsWith('/videos/')
-  ? [playbackUrl(video), `${githubMediaRoot}${video}?v=20261112`]
+  ? [playbackUrl(video), `${githubMediaRoot}${video}?v=20261112`, ...(staticMirror ? [`https://yangzengyan-portfolio.pages.dev${video.replace('/videos/', '/media/')}?v=20261112`] : [])]
   : [playbackUrl(video)]
-const provider = url => url.startsWith(githubMediaRoot) ? 'github' : 'origin'
+const provider = url => url.startsWith(githubMediaRoot) ? 'github' : url.startsWith('https://yangzengyan-portfolio.pages.dev') ? 'cloudflare' : 'origin'
 export const rememberPlaybackSource = url => {
   const name = provider(url)
   preferredProvider = { name, until: Date.now() + preferenceLifetime }

@@ -21,7 +21,7 @@ const compile = async (filename, imports) => {
   }
   return `data:text/javascript;base64,${Buffer.from(code).toString('base64')}`
 }
-const lazyUrl = await compile('LazyImage.jsx', { './useNearViewport': new URL('../src/useNearViewport.js', import.meta.url).href, './posterPlaceholders': new URL('../src/posterPlaceholders.js', import.meta.url).href })
+const lazyUrl = await compile('LazyImage.jsx', { './assetPaths': new URL('../src/assetPaths.js', import.meta.url).href, './useNearViewport': new URL('../src/useNearViewport.js', import.meta.url).href, './posterPlaceholders': new URL('../src/posterPlaceholders.js', import.meta.url).href })
 const { default: LazyImage } = await import(lazyUrl)
 const { default: PreviewVideo } = await import(await compile('PreviewVideo.jsx', {
   './LazyImage': lazyUrl, './media': new URL('../src/media.js', import.meta.url).href,

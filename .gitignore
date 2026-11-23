@@ -8,3 +8,4 @@ tmp-reference-frames/
 .env.*
 !.env.example
 quick-dist/
+dist-github/

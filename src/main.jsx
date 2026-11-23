@@ -12,6 +12,7 @@ import DriftWall from './DriftWall'
 import VisualBoundary, { PortfolioRecovery } from './VisualBoundary'
 import PreviewVideo from './PreviewVideo'
 import LazyImage from './LazyImage'
+import { assetUrl } from './assetPaths'
 import useResponsivePlayback from './useResponsivePlayback'
 import { playbackUrl, previewPoster, setPlayerOpen, thumbnailUrl } from './media'
 import './styles.css'
@@ -146,7 +147,7 @@ function Marquee() {
   return createPortal(<div className="short-drama-modal" role="dialog" aria-modal="true" aria-label={`${project.label} video player`} onClick={onClose}>
     <div className="short-drama-modal-inner" onClick={event => event.stopPropagation()}>
       <div className="short-drama-modal-bar"><div><small>NOW PLAYING</small><strong>{project.label}</strong></div><div><a className="short-drama-external" href={playbackUrl(project.video)} target="_blank" rel="noreferrer">直接打开视频 <ArrowUpRight size={16} /></a><button className="short-drama-fullscreen" onClick={() => videoRef.current?.requestFullscreen?.()}>全屏播放 <ArrowUpRight size={16} /></button><button className="short-drama-close" onClick={onClose} aria-label="关闭播放器">&times;</button></div></div>
-      <div className="short-drama-player-wrap"><video ref={videoRef} poster={previewPoster(project.video) || project.cover || project.poster} controls autoPlay muted playsInline preload="none" />{['loading', 'buffering'].includes(playerStatus) && <div className="video-buffering-status" role="status">{playerStatus === 'loading' ? '正在加载视频…' : '正在缓冲…'}</div>}{slowLoad && ['loading', 'buffering'].includes(playerStatus) && <div className="video-slow-status" role="status"><span>加载较慢，可重试或直接打开视频。</span><button type="button" onClick={() => setAttempt(value => value + 1)}>重新加载</button><a href={playbackUrl(project.video)} target="_blank" rel="noreferrer">直接打开视频</a></div>}{playerStatus === 'error' && <div className="short-drama-error" role="alert">视频暂时无法播放<div><button type="button" onClick={() => setAttempt(value => value + 1)}>重新加载</button><a href={playbackUrl(project.video)} target="_blank" rel="noreferrer">直接打开视频</a></div></div>}</div>
+      <div className="short-drama-player-wrap"><video ref={videoRef} poster={assetUrl(previewPoster(project.video) || project.cover || project.poster)} controls autoPlay muted playsInline preload="none" />{['loading', 'buffering'].includes(playerStatus) && <div className="video-buffering-status" role="status">{playerStatus === 'loading' ? '正在加载视频…' : '正在缓冲…'}</div>}{slowLoad && ['loading', 'buffering'].includes(playerStatus) && <div className="video-slow-status" role="status"><span>加载较慢，可重试或直接打开视频。</span><button type="button" onClick={() => setAttempt(value => value + 1)}>重新加载</button><a href={playbackUrl(project.video)} target="_blank" rel="noreferrer">直接打开视频</a></div>}{playerStatus === 'error' && <div className="short-drama-error" role="alert">视频暂时无法播放<div><button type="button" onClick={() => setAttempt(value => value + 1)}>重新加载</button><a href={playbackUrl(project.video)} target="_blank" rel="noreferrer">直接打开视频</a></div></div>}</div>
     </div>
   </div>, document.body)
 }

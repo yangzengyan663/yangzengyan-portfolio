@@ -1,3 +1,4 @@
+import { assetUrl } from '../assetPaths'
 import { memo, useCallback, useEffect, useMemo, useRef } from 'react'
 import { ArrowUpRight } from 'lucide-react'
 import LazyImage from '../LazyImage'
@@ -154,8 +155,8 @@ function ProfileCard({
   }, [centerCard, enableMobileTilt, enableTilt, getPointerPosition, mobileTiltSensitivity, setTarget, stopAnimation, updateCardVariables])
 
   const cardStyle = useMemo(() => ({
-    '--icon': iconUrl ? `url(${iconUrl})` : 'none',
-    '--grain': grainUrl ? `url(${grainUrl})` : 'none',
+    '--icon': iconUrl ? `url(${assetUrl(iconUrl)})` : 'none',
+    '--grain': grainUrl ? `url(${assetUrl(grainUrl)})` : 'none',
     '--inner-gradient': innerGradient,
     '--behind-glow-color': behindGlowColor,
     '--behind-glow-size': behindGlowSize,

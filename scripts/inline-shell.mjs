@@ -18,7 +18,8 @@ export function inlinePortfolioShell() {
       const entry = html.match(/<script\b[^>]*\btype="module"[^>]*\bsrc="([^"]+)"[^>]*><\/script>/)
       if (!entry) throw new Error('Portfolio entry script was not found')
       const asset = href => {
-        const target = path.resolve(directory, '.' + href)
+        const relative = href.startsWith(config.base) ? href.slice(config.base.length) : href.replace(/^\//, '')
+        const target = path.resolve(directory, relative)
         if (!target.startsWith(directory + path.sep)) throw new Error('Invalid shell asset path')
         return target
       }
@@ -27,7 +28,7 @@ export function inlinePortfolioShell() {
       let javascript = await readFile(asset(entry[1]), 'utf8')
       javascript = javascript
         .replace(/\bimport\s*\(\s*(["'`])\.\/([^"'`]+)\1\s*\)/g,
-          (_, quote, file) => `import(new URL(${JSON.stringify('/assets/' + file)},document.baseURI).href)`)
+          (_, quote, file) => `import(new URL(${JSON.stringify(path.posix.join(path.posix.dirname(entry[1]), file))},document.baseURI).href)`)
         .replace(/import\.meta\.resolve/g, '(undefined)')
         .replace(/import\.meta\.url/g, base)
       if (/\bfrom\s*["'`]\.\//.test(javascript)) {
@@ -45,6 +46,9 @@ export function inlinePortfolioShell() {
         html = html.replace('</body>', `<style data-app-styles>${css}</style>\n</body>`)
       }
       html = html.replace('</body>', boot + '\n</body>')
+      if (process.env.VITE_STATIC_MIRROR === 'true') {
+        html = html.replace(/href="\/media\//g, `href="${config.base}videos/`).replace(/href="\/"/g, `href="${config.base}"`)
+      }
       await writeFile(indexPath, html)
       console.log(`Portfolio shell: ${Math.round(gzipSync(html).length / 1024)} KiB gzip; no external entry JS/CSS requests`)
     },
