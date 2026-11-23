@@ -13,6 +13,7 @@ import VisualBoundary, { PortfolioRecovery } from './VisualBoundary'
 import PreviewVideo from './PreviewVideo'
 import LazyImage from './LazyImage'
 import { assetUrl } from './assetPaths'
+import { openingPreparation } from './openingResources'
 import useResponsivePlayback from './useResponsivePlayback'
 import { playbackUrl, previewPoster, setPlayerOpen, thumbnailUrl } from './media'
 import './styles.css'
@@ -252,7 +253,10 @@ function AdvertisingFilms() {
     if (!opening || opening.isFinished()) reveal()
     else {
       document.addEventListener('portfolio-opening-finished', reveal, { once: true })
-      opening.ready([...document.querySelectorAll('#home .reference-center-cover')])
+      try {
+        const { tasks, finalize } = openingPreparation()
+        opening.start(tasks, finalize)
+      } catch { opening.fail() }
     }
     return () => document.removeEventListener('portfolio-opening-finished', reveal)
   }, [])

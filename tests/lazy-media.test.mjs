@@ -21,7 +21,7 @@ const compile = async (filename, imports) => {
   }
   return `data:text/javascript;base64,${Buffer.from(code).toString('base64')}`
 }
-const lazyUrl = await compile('LazyImage.jsx', { './assetPaths': new URL('../src/assetPaths.js', import.meta.url).href, './useNearViewport': new URL('../src/useNearViewport.js', import.meta.url).href, './posterPlaceholders': new URL('../src/posterPlaceholders.js', import.meta.url).href })
+const lazyUrl = await compile('LazyImage.jsx', { './assetPaths': new URL('../src/assetPaths.js', import.meta.url).href, './preparedImages': new URL('../src/preparedImages.js', import.meta.url).href, './useNearViewport': new URL('../src/useNearViewport.js', import.meta.url).href, './posterPlaceholders': new URL('../src/posterPlaceholders.js', import.meta.url).href })
 const { default: LazyImage } = await import(lazyUrl)
 const { default: PreviewVideo } = await import(await compile('PreviewVideo.jsx', {
   './LazyImage': lazyUrl, './media': new URL('../src/media.js', import.meta.url).href,
@@ -181,6 +181,23 @@ test('eager images immediately expose their full source and retain the inline ba
   assert.match(tag, /\ssrc="\/hero.webp"/)
   assert.match(tag, /\ssrcSet="\/hero-large.webp 2x"/i)
   assert.match(tag, /background-image:url/)
+})
+
+test('a prepared far image reveals its full source eagerly without waiting for viewport observation', async () => {
+  const prepared = 'data:text/javascript;base64,' + Buffer.from('export const usePreparedImage = () => true').toString('base64')
+  const { default: PreparedLazyImage } = await import(await compile('LazyImage.jsx', {
+    './assetPaths': new URL('../src/assetPaths.js', import.meta.url).href,
+    './preparedImages': prepared,
+    './useNearViewport': new URL('../src/useNearViewport.js', import.meta.url).href,
+    './posterPlaceholders': new URL('../src/posterPlaceholders.js', import.meta.url).href,
+  }))
+  const tag = imgTag(renderToStaticMarkup(React.createElement(PreparedLazyImage, {
+    src: '/media-previews/cup-1.jpg', loading: 'lazy',
+  })))
+  assert.match(tag, /\ssrc="\/media-previews\/cup-1\.jpg"/)
+  assert.match(tag, /\sloading="eager"/)
+  assert.match(tag, /background-image:url/)
+  assert.match(tag, /data-media-src="\/media-previews\/cup-1\.jpg"/)
 })
 
 test('PreviewVideo always renders an image, even when active or given video autoplay props', () => {

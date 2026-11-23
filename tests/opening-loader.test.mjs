@@ -93,158 +93,290 @@ function opening() {
 }
 
 const hidden = runner => runner.nodes['opening-loader'].classList.contains('is-hidden')
-const pendingImage = () => {
-  let resolve
+const percent = runner => Number.parseInt(runner.nodes['opening-count'].textContent)
+const deferred = () => {
+  let resolve, reject
+  const promise = new Promise((done, failed) => { resolve = done; reject = failed })
+  return { promise, resolve, reject }
+}
+const job = (id, pending = deferred()) => {
   let calls = 0
-  const promise = new Promise(done => { resolve = done })
-  return { decode: () => { calls++; return promise }, resolve, get calls() { return calls } }
+  return { id, label: id, run: () => { calls++; return pending.promise }, pending, get calls() { return calls } }
 }
 
-test('the first HTML displays the numeric opening before module execution and has no lightweight work list', () => {
+test('the first HTML shows its numeric opening and remains at zero until resource work starts', async () => {
   assert.match(html, /id="opening-count"[^>]*>0%<\/span>/)
   assert.ok(html.indexOf('id="opening-loader"') < html.indexOf('id="root"'))
   assert.ok(html.indexOf('data-opening-bootstrap') < html.indexOf('type="module"'))
   assert.ok(!html.includes('portfolio-recovery'))
   assert.ok(!/<nav\b/.test(html))
   const runner = opening()
-  assert.equal(runner.nodes['opening-count'].textContent, '0%')
-  assert.equal(runner.document.documentElement.classList.contains('portfolio-loading'), true)
-  assert.equal(typeof runner.api.ready, 'function')
-  assert.equal(hidden(runner), false)
-})
-
-test('the counter advances immediately but never reveals the page before the app mounts', async () => {
-  const runner = opening()
-  await runner.advanceTo(160)
-  assert.ok(Number.parseInt(runner.nodes['opening-count'].textContent) > 0)
-  await runner.advanceTo(24000)
-  assert.equal(runner.nodes['opening-count'].textContent, '95%')
+  assert.equal(typeof runner.api.start, 'function')
+  assert.equal(percent(runner), 0)
+  await runner.advanceTo(600000)
+  assert.equal(percent(runner), 0)
   assert.equal(runner.api.isFinished(), false)
   assert.equal(hidden(runner), false)
   assert.equal(runner.nodes.root.hasAttribute('inert'), true)
   assert.equal(runner.events.length, 0)
 })
 
-test('mounted content and decoding run behind the opening while the minimum duration is respected', async () => {
+test('progress counts only resolved resource jobs and includes the final display check', async () => {
   const runner = opening()
-  const first = pendingImage()
-  const second = pendingImage()
-  const mountedContent = { id: 'home', images: [first, second] }
+  const jobs = [job('one'), job('two'), job('three')]
+  const display = deferred()
+  let displayCalls = 0
+  const mountedContent = { id: 'home', images: ['original covers'] }
   runner.nodes.root.children.push(mountedContent)
-  runner.api.ready([first, second])
-  assert.equal(first.calls, 1)
-  assert.equal(second.calls, 1)
-  assert.deepEqual(runner.nodes.root.children, [mountedContent])
-  first.resolve()
-  second.resolve()
-  await runner.advanceTo(2199)
+  runner.api.start(jobs, () => { displayCalls++; return display.promise })
+  await runner.flush()
+  assert.equal(percent(runner), 0)
+  jobs[1].pending.resolve()
+  await runner.flush()
+  assert.equal(percent(runner), 25)
+  assert.equal(runner.nodes['opening-loader'].style.getPropertyValue('--loader-progress'), .25)
+  jobs[0].pending.resolve()
+  await runner.flush()
+  assert.equal(percent(runner), 50)
+  jobs[2].pending.resolve()
+  await runner.flush()
+  assert.equal(percent(runner), 75)
+  assert.equal(displayCalls, 1)
+  await runner.advanceTo(600000)
+  assert.equal(percent(runner), 75)
   assert.equal(hidden(runner), false)
+  assert.equal(runner.nodes.root.hasAttribute('inert'), true)
+  assert.deepEqual(runner.nodes.root.children, [mountedContent])
+  display.resolve()
+  await runner.flush()
+  assert.equal(percent(runner), 100)
   assert.equal(runner.events.length, 0)
-  await runner.advanceTo(2320)
-  assert.equal(runner.nodes['opening-count'].textContent, '100%')
+  await runner.advanceTo(600079)
+  assert.equal(hidden(runner), false)
+  await runner.advanceTo(600080)
   assert.equal(runner.api.isFinished(), true)
   assert.equal(hidden(runner), true)
   assert.equal(runner.nodes.root.hasAttribute('inert'), false)
   assert.equal(runner.nodes.root.hasAttribute('aria-hidden'), false)
   assert.equal(runner.document.documentElement.classList.contains('portfolio-loading'), false)
-  assert.ok(runner.events[0].at >= 2200 + 80)
   assert.deepEqual(runner.nodes.root.children, [mountedContent])
 })
 
-test('late mounting waits for real first-screen decoding rather than hiding at the minimum duration', async () => {
+test('pending jobs never gain progress from elapsed time or trigger display preparation', async () => {
   const runner = opening()
-  const image = pendingImage()
-  await runner.advanceTo(1800)
-  runner.api.ready([image])
-  await runner.advanceTo(2400)
-  assert.equal(runner.nodes['opening-count'].textContent, '95%')
+  const task = job('slow image')
+  let displayCalls = 0
+  runner.api.start([task], () => { displayCalls++ })
+  await runner.advanceTo(3600000)
+  assert.equal(task.calls, 1)
+  assert.equal(percent(runner), 0)
+  assert.equal(displayCalls, 0)
+  assert.equal(runner.events.length, 0)
+  assert.equal(runner.nodes['opening-retry'].hidden, true)
+})
+
+test('at most four resource jobs run concurrently and a completion frees the next slot', async () => {
+  const runner = opening()
+  const jobs = Array.from({ length: 6 }, (_, index) => job('image-' + index))
+  const display = deferred()
+  runner.api.start(jobs, () => display.promise)
+  await runner.flush()
+  assert.deepEqual(jobs.map(task => task.calls), [1, 1, 1, 1, 0, 0])
+  jobs[0].pending.resolve()
+  await runner.flush()
+  assert.deepEqual(jobs.map(task => task.calls), [1, 1, 1, 1, 1, 0])
+  jobs[1].pending.reject(new Error('network failure'))
+  await runner.flush()
+  assert.deepEqual(jobs.map(task => task.calls), [1, 1, 1, 1, 1, 1])
+  for (const index of [2, 3, 4, 5]) jobs[index].pending.resolve()
+  await runner.flush()
+  assert.equal(percent(runner), 71)
   assert.equal(hidden(runner), false)
-  image.resolve()
-  await runner.advanceTo(2520)
-  assert.equal(hidden(runner), true)
-  assert.ok(runner.events[0].at >= 2400 + 80)
-})
-
-test('a stalled image decode has a bounded warm-up deadline and does not trap visitors', async () => {
-  const runner = opening()
-  await runner.advanceTo(1000)
-  const image = pendingImage()
-  runner.api.ready([image])
-  await runner.advanceTo(2799)
-  assert.equal(hidden(runner), false)
-  await runner.advanceTo(2920)
-  assert.equal(runner.api.isFinished(), true)
-  assert.ok(runner.events[0].at >= 1000 + 1800 + 80)
-  assert.ok(runner.events[0].at < 3000)
-})
-
-test('a rejected or unsupported image decode still allows the original page to open', async () => {
-  const runner = opening()
-  runner.api.ready([
-    { decode: () => Promise.reject(new Error('image failed')) },
-    { decode: () => { throw new Error('decode unsupported') } },
-    {},
-  ])
-  await runner.advanceTo(2320)
-  assert.equal(runner.api.isFinished(), true)
-  assert.equal(runner.nodes['opening-message'].hidden, true)
-})
-
-test('an unavailable module changes the counter to an explicit retry error after 25 seconds', async () => {
-  const runner = opening()
-  await runner.advanceTo(24999)
-  assert.equal(runner.nodes['opening-message'].hidden, true)
-  await runner.advanceTo(25000)
-  assert.equal(runner.nodes['opening-count'].hidden, true)
-  assert.equal(runner.nodes['opening-rule'].hidden, true)
-  assert.equal(runner.nodes['opening-message'].hidden, false)
   assert.equal(runner.nodes['opening-retry'].hidden, false)
   assert.equal(runner.nodes['opening-loader'].getAttribute('role'), 'alert')
-  assert.equal(hidden(runner), false)
-  assert.equal(runner.events.length, 0)
-  assert.equal(runner.tasks.size, 0)
-  runner.nodes['opening-retry'].dispatchEvent(new Event('click'))
-  assert.equal(runner.reloads, 1)
 })
 
-test('an explicit bootstrap failure is immediate, stays failed, and never emits a finish event', async () => {
+test('failed jobs do not count as complete and retry preserves successes while rerunning only failures', async () => {
   const runner = opening()
-  runner.api.fail()
-  runner.api.fail()
-  runner.api.ready([{ decode: () => assert.fail('a failed opening must not restart warming') }])
-  await runner.advanceTo(30000)
+  const first = job('already loaded')
+  const third = job('also loaded')
+  const attempts = [deferred(), deferred()]
+  let failedCalls = 0
+  let displayCalls = 0
+  const failed = { id: 'failed cover', label: 'Failed cover', run: () => attempts[failedCalls++].promise }
+  const display = deferred()
+  runner.api.start([first, failed, third], () => { displayCalls++; return display.promise })
+  first.pending.resolve()
+  third.pending.resolve()
+  attempts[0].reject(new Error('cover unavailable'))
+  await runner.flush()
+  assert.equal(percent(runner), 50)
+  assert.equal(displayCalls, 0)
+  assert.equal(runner.nodes['opening-count'].hidden, false)
   assert.equal(runner.nodes['opening-retry'].hidden, false)
-  assert.equal(runner.api.isFinished(), false)
-  assert.equal(runner.events.length, 0)
+  runner.nodes['opening-retry'].dispatchEvent(new Event('click'))
+  await runner.flush()
+  assert.equal(first.calls, 1)
+  assert.equal(third.calls, 1)
+  assert.equal(failedCalls, 2)
+  assert.equal(percent(runner), 50)
+  assert.equal(runner.reloads, 0)
+  attempts[1].resolve()
+  await runner.flush()
+  assert.equal(percent(runner), 75)
+  assert.equal(displayCalls, 1)
+  display.resolve()
+  await runner.advanceTo(80)
+  assert.equal(percent(runner), 100)
+  assert.equal(runner.events.length, 1)
 })
 
-test('StrictMode-style duplicate ready calls decode once, finish once, and remove the overlay once', async () => {
+test('a failed final display check retries only that check and retains all loaded resources', async () => {
   const runner = opening()
-  const image = pendingImage()
+  const jobs = [job('one'), job('two'), job('three')]
+  const displays = [deferred(), deferred()]
+  let displayCalls = 0
+  runner.api.start(jobs, () => displays[displayCalls++].promise)
+  jobs.forEach(task => task.pending.resolve())
+  await runner.flush()
+  displays[0].reject(new Error('the real DOM is not yet decoded'))
+  await runner.flush()
+  assert.equal(percent(runner), 75)
+  assert.equal(runner.nodes['opening-retry'].hidden, false)
+  runner.nodes['opening-retry'].dispatchEvent(new Event('click'))
+  await runner.flush()
+  assert.equal(displayCalls, 2)
+  assert.deepEqual(jobs.map(task => task.calls), [1, 1, 1])
+  assert.equal(percent(runner), 75)
+  displays[1].resolve()
+  await runner.advanceTo(80)
+  assert.equal(percent(runner), 100)
+  assert.equal(runner.api.isFinished(), true)
+})
+
+test('synchronous resource exceptions are failures and a later retry can recover', async () => {
+  const runner = opening()
+  let calls = 0
+  const jobs = [
+    { id: 'immediate', run: () => 42 },
+    { id: 'throws', run: () => { if (++calls === 1) throw new Error('decode failed'); return 'decoded' } },
+    { id: 'third', run: () => Promise.resolve() },
+  ]
+  runner.api.start(jobs, () => Promise.resolve())
+  await runner.flush()
+  assert.equal(percent(runner), 50)
+  assert.equal(runner.nodes['opening-retry'].hidden, false)
+  runner.nodes['opening-retry'].dispatchEvent(new Event('click'))
+  await runner.advanceTo(80)
+  assert.equal(calls, 2)
+  assert.equal(percent(runner), 100)
+  assert.equal(runner.events.length, 1)
+})
+
+test('duplicate resource ids have one fixed loading item and one separate display item', async () => {
+  const runner = opening()
+  const first = job('same image')
+  const last = job('same image')
+  const display = deferred()
+  runner.api.start([first, last], () => display.promise)
+  await runner.flush()
+  assert.equal(first.calls, 0)
+  assert.equal(last.calls, 1)
+  last.pending.resolve()
+  await runner.flush()
+  assert.equal(percent(runner), 50)
+  display.resolve()
+  await runner.advanceTo(80)
+  assert.equal(percent(runner), 100)
+})
+
+test('StrictMode-style duplicate start calls never restart work or finish more than once', async () => {
+  const runner = opening()
+  const task = job('real resource')
+  const ignored = job('duplicate effect')
+  const display = deferred()
   let reveals = 0
   const reveal = () => reveals++
   runner.document.addEventListener('portfolio-opening-finished', reveal, { once: true })
-  runner.api.ready([image])
+  runner.api.start([task], () => display.promise)
   runner.document.removeEventListener('portfolio-opening-finished', reveal)
   runner.document.addEventListener('portfolio-opening-finished', reveal, { once: true })
-  runner.api.ready([image])
-  assert.equal(image.calls, 1)
-  image.resolve()
-  await runner.advanceTo(30000)
-  runner.api.ready([image])
+  runner.api.start([ignored], () => assert.fail('second startup must not replace the display check'))
+  await runner.flush()
+  assert.equal(task.calls, 1)
+  assert.equal(ignored.calls, 0)
+  task.pending.resolve()
+  display.resolve()
+  await runner.advanceTo(680)
+  runner.api.start([ignored], () => {})
   runner.api.fail()
   assert.equal(runner.events.length, 1)
   assert.equal(reveals, 1)
   assert.equal(runner.nodes['opening-loader'].removals, 1)
-  assert.equal(runner.nodes['opening-message'].hidden, true)
+  assert.equal(runner.api.isFinished(), true)
   assert.equal(runner.tasks.size, 0)
 })
 
-test('App mounts all original sections immediately and only asks the opening to decode eager image covers', () => {
+test('a fatal startup failure keeps the overlay and its button reloads instead of retrying resources', async () => {
+  const runner = opening()
+  runner.api.fail()
+  runner.api.fail()
+  runner.api.start([{ id: 'ignored', run: () => assert.fail('fatal startup must not launch resources') }], () => {})
+  await runner.advanceTo(600000)
+  assert.equal(percent(runner), 0)
+  assert.equal(runner.nodes['opening-retry'].hidden, false)
+  assert.equal(runner.nodes['opening-loader'].getAttribute('role'), 'alert')
+  assert.equal(hidden(runner), false)
+  assert.equal(runner.api.isFinished(), false)
+  runner.nodes['opening-retry'].dispatchEvent(new Event('click'))
+  assert.equal(runner.reloads, 1)
+})
+
+test('a fatal error during resource loading prevents later resolutions from exposing the page', async () => {
+  const runner = opening()
+  const task = job('pending at failure')
+  let displayCalls = 0
+  runner.api.start([task], () => { displayCalls++ })
+  runner.api.fail()
+  task.pending.resolve()
+  await runner.advanceTo(600000)
+  assert.equal(percent(runner), 0)
+  assert.equal(displayCalls, 0)
+  assert.equal(runner.events.length, 0)
+  assert.equal(runner.nodes.root.hasAttribute('inert'), true)
+  assert.equal(hidden(runner), false)
+})
+
+test('invalid task contracts become an explicit fatal startup error', () => {
+  for (const tasks of [undefined, [{ id: 'missing run' }], [{ run() {} }]]) {
+    const runner = opening()
+    runner.api.start(tasks, () => {})
+    assert.equal(runner.nodes['opening-retry'].hidden, false)
+    assert.equal(runner.nodes['opening-loader'].getAttribute('role'), 'alert')
+    runner.nodes['opening-retry'].dispatchEvent(new Event('click'))
+    assert.equal(runner.reloads, 1)
+  }
+})
+
+test('an empty resource list still waits for the real display check rather than reporting automatic success', async () => {
+  const runner = opening()
+  const display = deferred()
+  let displayCalls = 0
+  runner.api.start([], () => { displayCalls++; return display.promise })
+  await runner.advanceTo(600000)
+  assert.equal(displayCalls, 1)
+  assert.equal(percent(runner), 0)
+  display.resolve()
+  await runner.advanceTo(600080)
+  assert.equal(percent(runner), 100)
+  assert.equal(runner.api.isFinished(), true)
+})
+
+test('the original App mounts immediately and the bootstrap issues no independent media requests', () => {
   assert.match(main, /<main>\s*<Hero\s+onReady=/)
   assert.match(main, /<About\s*\/>\s*<Marquee\s*\/>\s*<Services\s*\/>\s*<Projects\s*\/>/)
-  assert.match(main, /opening\.ready\(\[\.\.\.document\.querySelectorAll\('#home \.reference-center-cover'\)\]\)/)
-  assert.match(main, /<LazyImage\s+className="reference-center-cover"[^>]+loading="eager"/)
+  assert.match(main, /openingPreparation\(\)/)
+  assert.match(main, /opening\.start\(tasks, finalize\)/)
   assert.match(main, /\nmount\(\)\s*$/)
   assert.ok(!/\.mp4|fetch\s*\(|new\s+(?:Image|XMLHttpRequest)|createElement\s*\(/.test(bootstrap))
 })

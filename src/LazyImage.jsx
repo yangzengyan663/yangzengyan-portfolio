@@ -2,6 +2,7 @@ import { forwardRef, useCallback, useRef, useState } from 'react'
 import useNearViewport from './useNearViewport'
 import { placeholderFor } from './posterPlaceholders'
 import { assetUrl, assetSrcSet } from './assetPaths'
+import { usePreparedImage } from './preparedImages'
 
 const LazyImage = forwardRef(function LazyImage({
   src, srcSet, sizes, rootMargin = '800px 0px', sectionRootMargin = rootMargin,
@@ -9,6 +10,8 @@ const LazyImage = forwardRef(function LazyImage({
 }, forwardedRef) {
   const ref = useRef(null)
   const near = useNearViewport(ref, { rootMargin, sectionRootMargin, enabled: loading !== 'eager' })
+  const prepared = usePreparedImage(src)
+  const actualReveal = near || prepared
   const [loadedKey, setLoadedKey] = useState(null)
   const sourceKey = src || srcSet || ''
   const attach = useCallback(element => {
@@ -19,14 +22,14 @@ const LazyImage = forwardRef(function LazyImage({
 
   const handleLoad = event => {
     const image = event.currentTarget
-    if (near && image.naturalWidth > 0 && image.currentSrc !== placeholder) setLoadedKey(sourceKey)
+    if (actualReveal && image.naturalWidth > 0 && image.currentSrc !== placeholder) setLoadedKey(sourceKey)
     onLoad?.(event)
   }
   const imageStyle = placeholder ? {
     backgroundImage: `url(${JSON.stringify(placeholder)})`, backgroundPosition: 'center', backgroundSize: 'cover', ...style,
   } : style
-  return <img {...props} ref={attach} src={near && src ? assetUrl(src) : placeholder || undefined} srcSet={near ? assetSrcSet(srcSet) : undefined}
-    sizes={sizes} alt={alt} className={className} style={imageStyle} loading={loading} decoding={decoding}
+  return <img {...props} ref={attach} src={actualReveal && src ? assetUrl(src) : placeholder || undefined} srcSet={actualReveal ? assetSrcSet(srcSet) : undefined}
+    sizes={sizes} alt={alt} className={className} style={imageStyle} loading={prepared ? 'eager' : loading} decoding={decoding}
     data-media-src={src} data-media-loaded={Boolean(sourceKey) && loadedKey === sourceKey} onLoad={handleLoad} />
 })
 
