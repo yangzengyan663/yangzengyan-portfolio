@@ -87,9 +87,9 @@ export const reducePreviewTraffic = () => {
     || Boolean(connection?.saveData)
     || ['slow-2g', '2g', '3g'].includes(connection?.effectiveType)
 }
-export const previewUrl = video => previewNames[video]
-  ? `/media-previews/${previewNames[video]}.mp4`
-  : video.includes('/digital-human-series/') ? video.replace('/digital-human-series/', '/digital-human-previews/') : undefined
+export const previewUrl = video => typeof video === 'string' && /^\/videos\/[\w/-]+\.mp4$/.test(video)
+  ? assetUrl('/hover-previews/' + video.slice('/videos/'.length, -4).replaceAll('/', '--') + '.mp4')
+  : undefined
 export const previewPoster = video => {
   if (previewNames[video]) return `/media-previews/${previewNames[video]}.jpg`
   const music = /^\/videos\/digital-human-series\/([^/]+)\.mp4$/.exec(video)

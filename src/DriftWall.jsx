@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { ArrowUpRight, Play } from 'lucide-react'
 import { isPlayerOpen } from './media'
-import LazyImage from './LazyImage'
+import PreviewVideo from './PreviewVideo'
 import './DriftWall.css'
 
 const clampColumns = value => Math.max(1, Math.min(8, Math.round(value || 1)))
@@ -105,7 +105,7 @@ export default function DriftWall({
               tabIndex={itemIndex >= column.length ? -1 : 0}
               aria-hidden={itemIndex >= column.length ? 'true' : undefined}
             >
-              <LazyImage src={item.image} alt="" draggable="false" style={{ objectFit: item.fit || 'cover' }} />
+              <PreviewVideo src={item.href} poster={item.image} alt="" draggable="false" style={{ objectFit: item.fit || 'cover' }} />
               <span className="drift-wall-shade" />
               <span className="drift-wall-meta"><small>{item.category || 'SELECTED FILM'}</small><strong>{item.title}</strong></span>
               <span className="drift-wall-play"><Play size={13} fill="currentColor" /><ArrowUpRight size={13} /></span>

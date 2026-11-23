@@ -25,6 +25,7 @@ const lazyUrl = await compile('LazyImage.jsx', { './assetPaths': new URL('../src
 const { default: LazyImage } = await import(lazyUrl)
 const { default: PreviewVideo } = await import(await compile('PreviewVideo.jsx', {
   './LazyImage': lazyUrl, './media': new URL('../src/media.js', import.meta.url).href,
+  './hoverPreviewController': new URL('../src/hoverPreviewController.js', import.meta.url).href,
 }))
 
 const priorWindow = globalThis.window
@@ -200,7 +201,7 @@ test('a prepared far image reveals its full source eagerly without waiting for v
   assert.match(tag, /data-media-src="\/media-previews\/cup-1\.jpg"/)
 })
 
-test('PreviewVideo always renders an image, even when active or given video autoplay props', () => {
+test('PreviewVideo initially renders only its image, even when given inherited active or autoplay props', () => {
   const markup = renderToStaticMarkup(React.createElement(PreviewVideo, {
     src: '/videos/cup-people/1.mp4', active: true, autoPlay: true, muted: true, loop: true, preload: 'auto',
   }))

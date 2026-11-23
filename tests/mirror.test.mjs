@@ -134,3 +134,17 @@ test('the final mirror package contains every primary film, visible image, poste
   const missing = [...required].filter(href => !nonemptyFile(diskPath(mirrorPaths.assetUrl(href))))
   assert.deepEqual(missing, [], 'Merge original images/SVG/films before publishing this mirror')
 })
+
+test('all 28 works have distinct short hover clips on the same project host', () => {
+  const previews = JSON.parse(fs.readFileSync(path.join(root, 'scripts/hover-previews.json'), 'utf8'))
+  assert.deepEqual(new Set(Object.keys(previews)), new Set(films))
+  assert.equal(new Set(Object.values(previews)).size, 28)
+  for (const film of films) {
+    assert.equal(defaultMedia.previewUrl(film), previews[film])
+    assert.equal(mirrorMedia.previewUrl(film), base + previews[film].slice(1))
+    const bytes = fs.readFileSync(diskPath(mirrorMedia.previewUrl(film)))
+    assert.ok(bytes.length > 1024 && bytes.length < 600000, `hover clip should stay small: ${film}`)
+    assert.equal(bytes.toString('ascii', 4, 8), 'ftyp')
+    assert.ok(bytes.indexOf('moov') > 0 && bytes.indexOf('moov') < bytes.indexOf('mdat'), `fast-start metadata missing: ${film}`)
+  }
+})

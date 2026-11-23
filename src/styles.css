@@ -765,3 +765,8 @@ html{font-size:clamp(.875rem,.76vw,1rem);overflow-x:clip}body,#root,main{inline-
 .seagames-feature-video:hover .preview-video-poster{transform:scale(1.035);filter:brightness(1.08)}
 .jiangxing-video .preview-video-poster{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transition:transform .55s cubic-bezier(.16,1,.3,1),filter .35s ease}
 .jiangxing-video:hover .preview-video-poster,.jiangxing-video:focus-visible .preview-video-poster{transform:scale(1.025);filter:brightness(1.09)}
+
+/* Only the pointed-at work mounts a short preview; the cover stays beneath it. */
+.portfolio-hover-preview{position:absolute!important;inset:0!important;display:block;width:100%!important;height:100%!important;max-width:none!important;max-height:none!important;object-fit:cover;object-position:center;z-index:0!important;pointer-events:none;opacity:0!important;transition:opacity .18s ease}
+.portfolio-hover-preview.is-playing{opacity:1!important}
+.drift-wall-track:has(.portfolio-hover-preview){animation-play-state:paused}
