@@ -12,6 +12,7 @@ import DriftWall from './DriftWall'
 import VisualBoundary, { PortfolioRecovery } from './VisualBoundary'
 import PreviewVideo from './PreviewVideo'
 import LazyImage from './LazyImage'
+import ImagePreviewModal from './ImagePreviewModal'
 import { assetUrl } from './assetPaths'
 import { openingPreparation } from './openingResources'
 import useResponsivePlayback from './useResponsivePlayback'
@@ -152,21 +153,7 @@ function Marquee() {
     </div>
   </div>, document.body)
 }
-function ImagePreviewModal({ project, onClose }) {
-  useEffect(() => {
-    const handleKeyDown = event => { if (event.key === 'Escape') onClose() }
-    document.body.style.overflow = 'hidden'
-    window.addEventListener('keydown', handleKeyDown)
-    return () => { document.body.style.overflow = ''; window.removeEventListener('keydown', handleKeyDown) }
-  }, [onClose])
-
-  return createPortal(<div className="image-preview-modal" role="dialog" aria-modal="true" aria-label={`${project.label} image preview`} onClick={onClose}>
-    <div className="image-preview-modal-inner" onClick={event => event.stopPropagation()}>
-      <div className="image-preview-modal-bar"><div><small>SUPPORTING VISUAL</small><strong>{project.label}</strong></div><button className="image-preview-close" type="button" onClick={onClose} aria-label="Close image preview">&times;</button></div>
-      <LazyImage src={project.image} alt={`${project.label} supporting visual`} loading="eager" />
-    </div>
-  </div>, document.body)
-}function ContactModal({ onClose }) {
+function ContactModal({ onClose }) {
   const [copied, setCopied] = useState('')
   useEffect(() => {
     const onKeyDown = event => { if (event.key === 'Escape') onClose() }
