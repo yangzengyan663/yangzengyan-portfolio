@@ -10,7 +10,6 @@ export const loadLightPillar = () => loadBundle().then(bundle => ({ default: bun
 export const loadProfileText = () => loadBundle().then(bundle => ({ default: bundle.ProfileTextEffects }))
 
 export function effectPreparationTasks() {
-  if (window.matchMedia('(prefers-reduced-motion: reduce), (max-width: 767px)').matches || navigator.connection?.saveData) return []
   return [{ id: 'effects', run: loadBundle }]
 }
 

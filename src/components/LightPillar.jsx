@@ -17,7 +17,9 @@ const LightPillar = ({
   mixBlendMode = 'screen',
   pillarRotation = 0,
   quality = 'high',
-  lightMode = false
+  lightMode = false,
+  onReady,
+  onUnavailable
 }) => {
   const containerRef = useRef(null);
   const rafRef = useRef(null);
@@ -226,6 +228,15 @@ const LightPillar = ({
     geometryRef.current = geometry;
     const mesh = new THREE.Mesh(geometry, material);
     scene.add(mesh);
+    // Prime the real shader once while the opening screen is still present,
+    // even when this section is below the viewport.
+    try {
+      renderer.render(scene, camera);
+      const context = renderer.getContext();
+      if (context.isContextLost() || context.getError() !== context.NO_ERROR) throw new Error('Background shader could not render');
+      renderer.domElement.dataset.backgroundFrame = 'ready';
+      onReady?.();
+    } catch { setWebGLSupported(false); return; }
 
     let mouseMoveTimeout = null;
     const handleMouseMove = event => {
@@ -247,7 +258,7 @@ const LightPillar = ({
     let lastTime = performance.now();
     const targetFPS = 30;
     const frameTime = 1000 / targetFPS;
-    let isInView = false;
+    let isInView = typeof IntersectionObserver !== 'function';
     let isPageVisible = !document.hidden && !isPlayerOpen();
     let disposed = false;
 
@@ -342,6 +353,8 @@ const LightPillar = ({
       rafRef.current = null;
     };
   }, [webGLSupported, quality]);
+
+  useEffect(() => { if (!webGLSupported) onUnavailable?.() }, [webGLSupported]);
 
   useEffect(() => {
     rotationSpeedRef.current = rotationSpeed;

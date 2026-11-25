@@ -160,7 +160,9 @@ const WebThreads = ({
   mouseStrength = 0.3,
   backgroundColor = '#FFFFFF',
   lightMode = false,
-  className = ''
+  className = '',
+  onReady,
+  onUnavailable
 }) => {
   const containerRef = useRef(null);
   const mouseRef = useRef({ enabled: true, strength: 0.3 });
@@ -168,7 +170,6 @@ const WebThreads = ({
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
-    if (window.matchMedia('(prefers-reduced-motion: reduce), (max-width: 767px)').matches || navigator.connection?.saveData) return;
 
     let renderer;
     try { renderer = new Renderer({
@@ -178,7 +179,7 @@ const WebThreads = ({
       antialias: false,
       powerPreference: 'low-power',
       dpr: Math.min(1, 1400 / Math.max(container.clientWidth, container.clientHeight, 1))
-    }); } catch { return; }
+    }); } catch { onUnavailable?.(); return; }
 
     const gl = renderer.gl;
     gl.clearColor(0, 0, 0, 0);
@@ -235,6 +236,9 @@ const WebThreads = ({
       res[0] = gl.drawingBufferWidth;
       res[1] = gl.drawingBufferHeight;
       renderer.render({ scene: mesh });
+      if (!gl.getProgramParameter(program.program, gl.LINK_STATUS)) { onUnavailable?.(); return; }
+      canvas.dataset.backgroundFrame = 'ready';
+      onReady?.();
     };
 
     const ro = new ResizeObserver(setSize);
@@ -270,7 +274,7 @@ const WebThreads = ({
     let lastFrame = 0;
 
     const loop = t => {
-      if (gl.isContextLost()) { raf = 0; canvas.style.display = 'none'; return; }
+      if (gl.isContextLost()) { raf = 0; onUnavailable?.(); return; }
       if (t - lastFrame < 1000 / 30) { raf = requestAnimationFrame(loop); return; }
       lastFrame = t;
       program.uniforms.iTime.value = (t - t0) * 0.001;
@@ -282,7 +286,7 @@ const WebThreads = ({
       program.uniforms.uMouseActive.value = currentActive;
       program.uniforms.uEnableMouse.value = mouseRef.current.enabled ? 1.0 : 0.0;
       program.uniforms.uMouseStrength.value = mouseRef.current.strength;
-      try { renderer.render({ scene: mesh }); } catch { raf = 0; canvas.style.display = 'none'; return; }
+      try { renderer.render({ scene: mesh }); } catch { raf = 0; onUnavailable?.(); return; }
       raf = requestAnimationFrame(loop);
     };
 
@@ -311,7 +315,7 @@ const WebThreads = ({
     };
     document.addEventListener('visibilitychange', onVisibility);
     document.addEventListener('portfolio-player-change', onVisibility);
-    const onContextLost = event => { event.preventDefault(); tryStop(); canvas.style.display = 'none'; };
+    const onContextLost = event => { event.preventDefault(); tryStop(); onUnavailable?.(); };
     canvas.addEventListener('webglcontextlost', onContextLost);
 
     tryStart();

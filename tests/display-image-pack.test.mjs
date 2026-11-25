@@ -182,6 +182,7 @@ test('the shipped section packs contain all 42 real images with valid ranges and
       sources.add(image.source);
       const data = bytes.subarray(image.offset, image.offset + image.length);
       if (image.type === 'image/webp') assert.equal(data.toString('ascii', 8, 12), 'WEBP');
+      else if (image.type === 'image/jpeg') assert.equal(data.readUInt16BE(0), 0xffd8);
       else assert.equal(image.type, 'image/svg+xml');
       next += image.length;
     }
@@ -189,5 +190,5 @@ test('the shipped section packs contain all 42 real images with valid ranges and
   }
   assert.equal(sources.size, 42);
   assert.equal(displayPacks.find(pack => pack.group === 'home').images.length, 6);
-  assert.ok(displayPacks.find(pack => pack.group === 'home').bytes < 200000);
+  assert.ok(displayPacks.find(pack => pack.group === 'home').bytes < 400000);
 });

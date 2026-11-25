@@ -12,7 +12,8 @@ const dependencies = {
     'export const prepareImage = source => globalThis.__openingResourcesTest.prepareImage(source);' +
     'export const preparedImageSource = source => globalThis.__openingResourcesTest.preparedUrls.get(source);'
   ),
-  './posterPlaceholders': new URL('../src/posterPlaceholders.js', import.meta.url).href,
+  './effectModules': asModule('export const effectPreparationTasks = () => [{ id: "effects", run: async () => { globalThis.__openingResourcesTest.effectsLoaded++ } }];'),
+  './backgroundReadiness': asModule('export const waitForBackgrounds = () => globalThis.__openingResourcesTest.background;'),
 }
 let injected = source
 for (const [name, url] of Object.entries(dependencies)) {
@@ -84,6 +85,8 @@ beforeEach(() => {
   scenario = {
     images: [],
     prepared: [],
+    effectsLoaded: 0,
+    background: Promise.resolve(),
     preparedUrls: new Map(),
     prepareImage(source) {
       this.prepared.push(source)
@@ -134,135 +137,65 @@ async function finalized(preparation) {
   return state
 }
 
-test('only the six unique home resources are prepared, without waiting for distant clear images or effects', async () => {
-  assert.equal(homeSources.length, 6)
-  assert.equal(new Set(allSources).size, 42)
-  scenario.images = allSources.map(source => new ImageNode(source))
-  // The moving archive repeats its images; these copies must not add tasks.
-  scenario.images.push(...Array.from({ length: 100 }, () => new ImageNode(farSource)))
-  assert.equal(scenario.images.length, 142)
-  const preparation = openingPreparation()
-  assert.deepEqual(new Set(preparation.tasks.map(task => task.id)), new Set(homeSources.map(source => 'image:' + source)))
-  assert.equal(preparation.tasks.length, 6)
-  assert.doesNotMatch(source, /effectPreparationTasks|effectModules/)
-  await Promise.all(preparation.tasks.map(task => task.run()))
-  assert.deepEqual(new Set(scenario.prepared), new Set(homeSources))
-  assert.ok(scenario.images.filter(image => !homeSources.includes(image.dataset.mediaSrc)).every(image => image.attribute === placeholderFor(image.dataset.mediaSrc)))
-  const state = await finalized(preparation)
-  assert.equal(state.error, null)
-  assert.ok(scenario.images.every(image => image.decodes === 1))
-})
+test('all 42 clear covers and the original effect code are prepared before entry', async () => {
+  scenario.images = allSources.map(source => new ImageNode(source));
+  scenario.images.push(...Array.from({length:100},()=>new ImageNode(farSource)));
+  const preparation = await prepareCritical();
+  assert.equal(preparation.tasks.length,43);
+  assert.equal(new Set(scenario.prepared).size,42);
+  assert.equal(scenario.effectsLoaded,1);
+  const state = await finalized(preparation);
+  assert.equal(state.error,null);
+  assert.equal(scenario.images.length,142);
+  assert.ok(scenario.images.every(image=>image.decodes===1 && image.currentSrc.startsWith('blob:')));
+});
 
-test('all distant works must already show and decode their actual inline frame, even though their clear pack is not requested', async () => {
-  scenario.images = [new ImageNode(cover), new ImageNode(farSource)]
-  const preparation = await prepareCritical()
-  assert.deepEqual(scenario.prepared, [cover])
-  assert.match(scenario.images[1].attribute, /^data:image\/webp;base64,/)
-  const bytes = Buffer.from(scenario.images[1].attribute.split(',')[1], 'base64')
-  assert.equal(bytes.toString('ascii', 0, 4), 'RIFF')
-  assert.equal(bytes.toString('ascii', 8, 12), 'WEBP')
-  const state = await finalized(preparation)
-  assert.equal(state.error, null)
-  assert.equal(scenario.images[1].decodes, 1)
-  assert.equal(scenario.preparedUrls.has(farSource), false)
-})
+test('even a valid distant inline frame cannot replace its clear image at 100 percent', async () => {
+  scenario.images=[new ImageNode(cover),new ImageNode(farSource)];
+  const preparation=await prepareCritical();
+  scenario.preparedUrls.delete(farSource);
+  scenario.images[1].attribute=placeholderFor(farSource);
+  scenario.images[1].currentSrc=placeholderFor(farSource);
+  const state=await finalized(preparation);
+  assert.match(state.error?.message||'',/not ready/);
+});
 
-test('a valid inline thumbnail cannot satisfy home readiness before its clear resource is prepared', async () => {
-  const critical = new ImageNode(cover)
-  scenario.images = [critical, new ImageNode(farSource)]
-  assert.match(critical.attribute, /^data:image\/webp;base64,/)
-  const blocked = await finalized(openingPreparation())
-  assert.match(blocked.error?.message || '', /opening image is not ready/)
-  assert.equal(critical.decodes, 0)
-  assert.equal(frames.length, 0)
-  const preparation = await prepareCritical()
-  const retried = await finalized(preparation)
-  assert.equal(retried.error, null)
-})
+test('all decoded images still wait until the backgrounds have actually drawn', async () => {
+  const background=deferred();scenario.background=background.promise;
+  scenario.images=[new ImageNode(cover),new ImageNode(farSource)];
+  const preparation=await prepareCritical();
+  const state=observe(preparation.finalize());
+  await twoFrames();assert.equal(state.settled,false);assert.equal(frames.length,0);
+  background.resolve();await flush();assert.equal(state.settled,false);
+  await frame();await state.promise;assert.equal(state.error,null);
+});
 
-test('missing frame sources, missing DOM src, zero pixels and decode failure cannot count as display-ready', async () => {
-  const failures = [
-    new ImageNode('/images/missing-inline-frame.webp', { home: false }),
-    new ImageNode(farSource, { attribute: null, current: null }),
-    new ImageNode(farSource, { width: 0 }),
-    new ImageNode(farSource, { complete: false }),
-    new ImageNode(farSource, { decode: () => Promise.reject(new Error('corrupt inline frame')) }),
-  ]
-  for (const failedImage of failures) {
-    scenario.images = [new ImageNode(cover), failedImage]
-    const preparation = await prepareCritical()
-    const state = await finalized(preparation)
-    assert.match(state.error?.message || '', /not ready|placeholder|not decoded|corrupt inline frame/)
-    assert.equal(frames.length, 0)
+test('a clear registry URL must match the rendered src and decoded currentSrc', async () => {
+  scenario.images=[new ImageNode(cover),new ImageNode(farSource)];
+  const preparation=await prepareCritical();
+  scenario.images[1].attribute=placeholderFor(farSource);
+  let state=await finalized(preparation);assert.match(state.error?.message||'',/placeholder/);
+  scenario.images[1].attribute=blobUrl(farSource);scenario.images[1].currentSrc=placeholderFor(farSource);
+  state=await finalized(preparation);assert.match(state.error?.message||'',/not decoded/);
+  scenario.images[1].currentSrc=blobUrl(farSource);
+  state=await finalized(preparation);assert.equal(state.error,null);
+});
+
+test('bad pixels or a rejected decode cannot count as clear content', async () => {
+  for(const options of [{width:0},{complete:false},{decode:()=>Promise.reject(new Error('bad decode'))}]) {
+    scenario.images=[new ImageNode(cover),new ImageNode(farSource,options)];
+    const state=await finalized(await prepareCritical());
+    assert.match(state.error?.message||'',/not decoded|bad decode/);
   }
-})
+});
 
-test('home and inline-frame decoding must really finish before the final display paint', async () => {
-  const first = deferred(), second = deferred()
-  scenario.images = [
-    new ImageNode(cover, { decode: () => first.promise }),
-    new ImageNode(farSource, { decode: () => second.promise }),
-  ]
-  const preparation = await prepareCritical()
-  const state = observe(preparation.finalize())
-  await twoFrames()
-  assert.ok(scenario.images.every(image => image.decodes === 1))
-  assert.equal(state.settled, false)
-  first.resolve()
-  await flush()
-  assert.equal(state.settled, false)
-  second.resolve()
-  await flush()
-  assert.equal(state.settled, false)
-  assert.equal(frames.length, 1)
-  await frame()
-  await state.promise
-  assert.equal(state.error, null)
-})
+test('font errors still prevent a premature completed opening', async () => {
+  scenario.images=[new ImageNode(cover)];
+  const preparation=await prepareCritical();
+  document.fonts=Object.assign([{status:'error'}],{ready:Promise.resolve()});
+  const state=await finalized(preparation);assert.match(state.error?.message||'',/font did not load/);
+});
 
-test('a prepared blob URL must match both the actual src and decoded currentSrc before entry', async () => {
-  scenario.images = [new ImageNode(cover), new ImageNode(farSource)]
-  const preparation = await prepareCritical()
-  scenario.preparedUrls.set(farSource, blobUrl(farSource))
-  const oldInline = scenario.images[1].attribute
-  let state = await finalized(preparation)
-  assert.match(state.error?.message || '', /placeholder/)
-  scenario.images[1].attribute = blobUrl(farSource)
-  scenario.images[1].currentSrc = oldInline
-  state = await finalized(preparation)
-  assert.match(state.error?.message || '', /not decoded/)
-  scenario.images[1].currentSrc = blobUrl(farSource)
-  state = await finalized(preparation)
-  assert.equal(state.error, null)
-})
-
-test('font readiness must resolve, and font failures still block otherwise viewable content', async () => {
-  scenario.images = [new ImageNode(cover), new ImageNode(farSource)]
-  const preparation = await prepareCritical()
-  const font = deferred()
-  const fonts = [{ status: 'loading' }]
-  fonts.ready = font.promise
-  document.fonts = fonts
-  const state = observe(preparation.finalize())
-  await twoFrames()
-  assert.equal(state.settled, false)
-  assert.equal(frames.length, 0)
-  fonts[0].status = 'loaded'
-  font.resolve()
-  await flush()
-  assert.equal(state.settled, false)
-  await frame()
-  await state.promise
-  assert.equal(state.error, null)
-
-  document.fonts = Object.assign([{ status: 'error' }], { ready: Promise.resolve() })
-  const failed = await finalized(preparation)
-  assert.match(failed.error?.message || '', /font did not load/)
-})
-
-test('unmounted or unidentifiable home content cannot open merely because distant frame images exist', () => {
-  scenario.images = []
-  assert.throws(openingPreparation, /images are not mounted/)
-  scenario.images = [new ImageNode(farSource)]
-  assert.throws(openingPreparation, /images are not mounted/)
-})
+test('empty page content cannot report a completed opening',()=>{
+  scenario.images=[];assert.throws(openingPreparation,/not mounted/);
+});

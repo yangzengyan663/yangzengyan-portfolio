@@ -770,3 +770,11 @@ html{font-size:clamp(.875rem,.76vw,1rem);overflow-x:clip}body,#root,main{inline-
 .portfolio-hover-preview{position:absolute!important;inset:0!important;display:block;width:100%!important;height:100%!important;max-width:none!important;max-height:none!important;object-fit:cover;object-position:center;z-index:0!important;pointer-events:none;opacity:0!important;transition:opacity .18s ease}
 .portfolio-hover-preview.is-playing{opacity:1!important}
 .drift-wall-track:has(.portfolio-hover-preview){animation-play-state:paused}
+
+.background-compatibility{position:absolute;inset:0;overflow:hidden;pointer-events:none;background:radial-gradient(ellipse at 50% 60%,#33115855,transparent 70%)}
+.background-compatibility::before,.background-compatibility::after{content:'';position:absolute;inset:-35%;background:conic-gradient(from 25deg at 50% 75%,transparent 0deg,#b15dff44 30deg,transparent 55deg,#f9c2ff33 100deg,transparent 135deg,#6737ff55 220deg,transparent 270deg);filter:blur(18px);animation:backgroundEnergy 18s ease-in-out infinite alternate;transform-origin:50% 75%}
+.background-compatibility::after{animation-delay:-9s;animation-duration:23s;opacity:.7;transform:rotate(65deg)}
+.background-compatibility-pillar::before{background:linear-gradient(105deg,transparent 35%,#9b49ef55 47%,#f9c2ff55 51%,transparent 65%)}
+@keyframes backgroundEnergy{from{transform:rotate(-18deg) scale(.9) translate(-3%,2%)}to{transform:rotate(25deg) scale(1.12) translate(4%,-3%)}}
+.video-player-open .background-compatibility::before,.video-player-open .background-compatibility::after{animation-play-state:paused}
+@media(prefers-reduced-motion:reduce){.background-compatibility::before,.background-compatibility::after{animation:none}}

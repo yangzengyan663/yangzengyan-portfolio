@@ -1,42 +1,42 @@
 export default [
   {
     "group": "home",
-    "url": "/display-packs/home-7a810ac41a02d983.bin",
-    "bytes": 187349,
+    "url": "/display-packs/home-3e0b8cd7eae64d26.bin",
+    "bytes": 314419,
     "images": [
       {
         "source": "/images/advertising-promotion-cover.webp",
         "offset": 0,
-        "length": 22816,
+        "length": 33788,
         "type": "image/webp"
       },
       {
         "source": "/images/ai-digital-human-mv-cover.webp",
-        "offset": 22816,
-        "length": 28310,
+        "offset": 33788,
+        "length": 41714,
         "type": "image/webp"
       },
       {
         "source": "/images/animated-short-drama-cover.webp",
-        "offset": 51126,
-        "length": 53160,
+        "offset": 75502,
+        "length": 80300,
         "type": "image/webp"
       },
       {
         "source": "/images/chinese-traditional-culture-cover.webp",
-        "offset": 104286,
-        "length": 55216,
+        "offset": 155802,
+        "length": 119018,
         "type": "image/webp"
       },
       {
         "source": "/images/fifi-gia-brand-cover.webp",
-        "offset": 159502,
-        "length": 27650,
+        "offset": 274820,
+        "length": 39402,
         "type": "image/webp"
       },
       {
         "source": "/mark.svg",
-        "offset": 187152,
+        "offset": 314222,
         "length": 197,
         "type": "image/svg+xml"
       }
@@ -44,273 +44,273 @@ export default [
   },
   {
     "group": "archive",
-    "url": "/display-packs/archive-a778fee52481c9b6.bin",
-    "bytes": 377764,
+    "url": "/display-packs/archive-8e58475656db4d52.bin",
+    "bytes": 500638,
     "images": [
       {
         "source": "/images/advertising-series/ad-1-cover.webp",
         "offset": 0,
-        "length": 16726,
+        "length": 37866,
         "type": "image/webp"
       },
       {
         "source": "/images/advertising-series/ad-2-cover.webp",
-        "offset": 16726,
-        "length": 16390,
+        "offset": 37866,
+        "length": 18774,
         "type": "image/webp"
       },
       {
         "source": "/images/advertising-series/ad-3-cover.webp",
-        "offset": 33116,
-        "length": 11836,
+        "offset": 56640,
+        "length": 12824,
         "type": "image/webp"
       },
       {
         "source": "/images/advertising-series/ad-4-cover.webp",
-        "offset": 44952,
-        "length": 24580,
+        "offset": 69464,
+        "length": 28090,
         "type": "image/webp"
       },
       {
         "source": "/images/fifi-gia-film-2-cover.webp",
-        "offset": 69532,
-        "length": 9222,
+        "offset": 97554,
+        "length": 11178,
         "type": "image/webp"
       },
       {
         "source": "/images/fifi-gia-film-4-cover.webp",
-        "offset": 78754,
-        "length": 5098,
+        "offset": 108732,
+        "length": 6212,
         "type": "image/webp"
       },
       {
         "source": "/media-previews/mv-luna.webp",
-        "offset": 83852,
-        "length": 61554,
+        "offset": 114944,
+        "length": 83112,
         "type": "image/webp"
       },
       {
         "source": "/media-previews/mv-marcus-saint-03.webp",
-        "offset": 145406,
-        "length": 30664,
+        "offset": 198056,
+        "length": 40636,
         "type": "image/webp"
       },
       {
         "source": "/media-previews/mv-milo.webp",
-        "offset": 176070,
-        "length": 113310,
+        "offset": 238692,
+        "length": 140566,
         "type": "image/webp"
       },
       {
         "source": "/media-previews/mv-seraphina.webp",
-        "offset": 289380,
-        "length": 51742,
+        "offset": 379258,
+        "length": 72328,
         "type": "image/webp"
       },
       {
         "source": "/media-previews/mv-soren.webp",
-        "offset": 341122,
-        "length": 36642,
+        "offset": 451586,
+        "length": 49052,
         "type": "image/webp"
       }
     ]
   },
   {
     "group": "ip",
-    "url": "/display-packs/ip-845211fee18e7456.bin",
-    "bytes": 32314,
+    "url": "/display-packs/ip-3857282f25446d2f.bin",
+    "bytes": 118958,
     "images": [
       {
         "source": "/images/fifi-gia-film-1-cover.webp",
         "offset": 0,
-        "length": 7064,
+        "length": 29828,
         "type": "image/webp"
       },
       {
         "source": "/images/fifi-gia-film-3-cover.webp",
-        "offset": 7064,
-        "length": 25250,
+        "offset": 29828,
+        "length": 89130,
         "type": "image/webp"
       }
     ]
   },
   {
     "group": "profile",
-    "url": "/display-packs/profile-37edd505dcfbbeca.bin",
-    "bytes": 30488,
+    "url": "/display-packs/profile-d0c19c91c48fefd2.bin",
+    "bytes": 105216,
     "images": [
       {
         "source": "/images/profile/yang-zengyan.webp",
         "offset": 0,
-        "length": 30488,
+        "length": 105216,
         "type": "image/webp"
       }
     ]
   },
   {
     "group": "culture",
-    "url": "/display-packs/culture-e771d73ac6d978fb.bin",
-    "bytes": 112026,
+    "url": "/display-packs/culture-879eb8cbb21613cd.bin",
+    "bytes": 252888,
     "images": [
       {
         "source": "/media-previews/ancient-shu-01.webp",
         "offset": 0,
-        "length": 27338,
+        "length": 56838,
         "type": "image/webp"
       },
       {
         "source": "/media-previews/ancient-shu-02.webp",
-        "offset": 27338,
-        "length": 17432,
+        "offset": 56838,
+        "length": 36286,
         "type": "image/webp"
       },
       {
         "source": "/media-previews/ancient-shu.jpg",
-        "offset": 44770,
-        "length": 6542,
-        "type": "image/webp"
+        "offset": 93124,
+        "length": 13373,
+        "type": "image/jpeg"
       },
       {
         "source": "/media-previews/jinshan-promo-01.webp",
-        "offset": 51312,
-        "length": 37806,
+        "offset": 106497,
+        "length": 92342,
         "type": "image/webp"
       },
       {
         "source": "/media-previews/jinshan-promo-02.webp",
-        "offset": 89118,
-        "length": 17976,
+        "offset": 198839,
+        "length": 43300,
         "type": "image/webp"
       },
       {
         "source": "/media-previews/jinshan.jpg",
-        "offset": 107094,
-        "length": 4932,
-        "type": "image/webp"
+        "offset": 242139,
+        "length": 10749,
+        "type": "image/jpeg"
       }
     ]
   },
   {
     "group": "drama",
-    "url": "/display-packs/drama-e3febb1b998cb19c.bin",
-    "bytes": 124084,
+    "url": "/display-packs/drama-dc830ab2246db6e9.bin",
+    "bytes": 197003,
     "images": [
       {
         "source": "/media-previews/cup-1.jpg",
         "offset": 0,
-        "length": 27184,
-        "type": "image/webp"
+        "length": 41272,
+        "type": "image/jpeg"
       },
       {
         "source": "/media-previews/cup-2.jpg",
-        "offset": 27184,
-        "length": 20946,
-        "type": "image/webp"
+        "offset": 41272,
+        "length": 34515,
+        "type": "image/jpeg"
       },
       {
         "source": "/media-previews/cup-3.jpg",
-        "offset": 48130,
-        "length": 28090,
-        "type": "image/webp"
+        "offset": 75787,
+        "length": 43817,
+        "type": "image/jpeg"
       },
       {
         "source": "/media-previews/cup-4.jpg",
-        "offset": 76220,
-        "length": 19256,
-        "type": "image/webp"
+        "offset": 119604,
+        "length": 33525,
+        "type": "image/jpeg"
       },
       {
         "source": "/media-previews/cup-special.jpg",
-        "offset": 95476,
-        "length": 28608,
-        "type": "image/webp"
+        "offset": 153129,
+        "length": 43874,
+        "type": "image/jpeg"
       }
     ]
   },
   {
     "group": "case",
-    "url": "/display-packs/case-f6d57f8d4ea788c4.bin",
-    "bytes": 91630,
+    "url": "/display-packs/case-6dda56c5b5defb8c.bin",
+    "bytes": 184725,
     "images": [
       {
         "source": "/media-previews/jiangxing-laptop-poster.webp",
         "offset": 0,
-        "length": 75228,
+        "length": 156536,
         "type": "image/webp"
       },
       {
         "source": "/media-previews/jiangxing.jpg",
-        "offset": 75228,
-        "length": 16402,
-        "type": "image/webp"
+        "offset": 156536,
+        "length": 28189,
+        "type": "image/jpeg"
       }
     ]
   },
   {
     "group": "music",
-    "url": "/display-packs/music-68eeaea6bad14fb8.bin",
-    "bytes": 236410,
+    "url": "/display-packs/music-9d78526e1170a1ac.bin",
+    "bytes": 311662,
     "images": [
       {
         "source": "/media-previews/mv-marcus-saint-01.webp",
         "offset": 0,
-        "length": 21326,
+        "length": 27254,
         "type": "image/webp"
       },
       {
         "source": "/media-previews/mv-marcus-saint-02.webp",
-        "offset": 21326,
-        "length": 50788,
+        "offset": 27254,
+        "length": 68054,
         "type": "image/webp"
       },
       {
         "source": "/media-previews/mv-olila.webp",
-        "offset": 72114,
-        "length": 42262,
+        "offset": 95308,
+        "length": 60898,
         "type": "image/webp"
       },
       {
         "source": "/media-previews/mv-tjax-02.webp",
-        "offset": 114376,
-        "length": 72780,
+        "offset": 156206,
+        "length": 91174,
         "type": "image/webp"
       },
       {
         "source": "/media-previews/mv-tjax.webp",
-        "offset": 187156,
-        "length": 49254,
+        "offset": 247380,
+        "length": 64282,
         "type": "image/webp"
       }
     ]
   },
   {
     "group": "commercial",
-    "url": "/display-packs/commercial-f6d95da26ddd8f82.bin",
-    "bytes": 69040,
+    "url": "/display-packs/commercial-87f99895b8576a16.bin",
+    "bytes": 126626,
     "images": [
       {
         "source": "/media-previews/seagames-01.webp",
         "offset": 0,
-        "length": 19608,
+        "length": 36092,
         "type": "image/webp"
       },
       {
         "source": "/media-previews/seagames-02.webp",
-        "offset": 19608,
-        "length": 16466,
+        "offset": 36092,
+        "length": 29740,
         "type": "image/webp"
       },
       {
         "source": "/media-previews/seagames-1.jpg",
-        "offset": 36074,
-        "length": 20496,
-        "type": "image/webp"
+        "offset": 65832,
+        "length": 35644,
+        "type": "image/jpeg"
       },
       {
         "source": "/media-previews/seagames-2.jpg",
-        "offset": 56570,
-        "length": 12470,
-        "type": "image/webp"
+        "offset": 101476,
+        "length": 25150,
+        "type": "image/jpeg"
       }
     ]
   }
