@@ -30,6 +30,9 @@ async function fixture(t, { cached = [], fetchResponse, cacheOpenError, cacheWri
   const priorCaches = globalThis.caches
   const priorCreate = URL.createObjectURL
   const priorDocument = globalThis.document
+  const priorWindow = globalThis.window
+  const reports = []
+  globalThis.window = { __portfolioOpening: { reportBytes: (id, bytes) => reports.push({ id, bytes }) } }
   const calls = [], blobs = new Map(), stored = new Map(cached.map(([key, value]) => [new URL(key, origin).href, value])), writes = []
   const key = request => typeof request === 'string' ? request : request.url
   const cache = {
@@ -70,6 +73,8 @@ async function fixture(t, { cached = [], fetchResponse, cacheOpenError, cacheWri
     else globalThis.caches = priorCaches
     if (priorDocument === undefined) delete globalThis.document
     else globalThis.document = priorDocument
+    if (priorWindow === undefined) delete globalThis.window
+    else globalThis.window = priorWindow
   })
   const manifest = moduleUrl(`export default ${JSON.stringify([packA, packB])}`)
   const paths = moduleUrl(`export const assetUrl = path => '/pack-test' + path;`)
@@ -79,8 +84,72 @@ async function fixture(t, { cached = [], fetchResponse, cacheOpenError, cacheWri
     .replace(/(['"])\.\/assetPaths(?:\.js)?\1/g, JSON.stringify(paths))
     + `\n// isolated display-pack test ${++instance}`
   const api = await import(moduleUrl(code))
-  return { api, calls, blobs, stored, writes }
+  return { api, calls, blobs, stored, writes, reports }
 }
+
+test('partial streamed bytes report only the image ranges actually received, before any image is ready', async t => {
+  let controller
+  const response = new Response(new ReadableStream({ start(value) { controller = value } }))
+  const { api, reports, calls, blobs } = await fixture(t, { fetchResponse: () => response })
+  const first = api.packedImageUrl('/images/a.webp')
+  const second = api.packedImageUrl('/images/b.jpg')
+  const flush = async () => { for (let index = 0; index < 20; index++) await Promise.resolve() }
+  await flush()
+  assert.equal(calls.length, 1)
+  assert.equal(reports.length, 0)
+  controller.enqueue(Uint8Array.of(1, 2))
+  await flush()
+  assert.deepEqual(reports.slice(-2), [{ id: 'image:/images/a.webp', bytes: 2 }, { id: 'image:/images/b.jpg', bytes: 0 }])
+  assert.equal(blobs.size, 0)
+  controller.enqueue(Uint8Array.of(3, 4, 5, 6))
+  await flush()
+  assert.deepEqual(reports.slice(-2), [{ id: 'image:/images/a.webp', bytes: 4 }, { id: 'image:/images/b.jpg', bytes: 2 }])
+  assert.equal(blobs.size, 0)
+  controller.enqueue(Uint8Array.of(7, 8))
+  controller.close()
+  await Promise.all([first, second])
+  assert.deepEqual(reports.slice(-2), [{ id: 'image:/images/a.webp', bytes: 4 }, { id: 'image:/images/b.jpg', bytes: 4 }])
+})
+
+test('an interrupted stream retains only real partial byte reports and produces no ready blobs', async t => {
+  let controller
+  const { api, reports, blobs } = await fixture(t, {
+    fetchResponse: () => new Response(new ReadableStream({ start(value) { controller = value } })),
+  })
+  const result = assert.rejects(api.packedImageUrl('/images/a.webp'), /connection lost/)
+  for (let index = 0; index < 20; index++) await Promise.resolve()
+  controller.enqueue(Uint8Array.of(1, 2))
+  for (let index = 0; index < 20; index++) await Promise.resolve()
+  controller.error(new Error('connection lost'))
+  await result
+  assert.deepEqual(reports.slice(-2), [{ id: 'image:/images/a.webp', bytes: 2 }, { id: 'image:/images/b.jpg', bytes: 0 }])
+  assert.equal(blobs.size, 0)
+})
+
+test('oversized packets are rejected and cancel their stream instead of reporting fictitious bytes', async t => {
+  let cancelled = false
+  const { api, reports, blobs } = await fixture(t, {
+    fetchResponse: () => new Response(new ReadableStream({
+      start(controller) { controller.enqueue(new Uint8Array(9)) },
+      cancel() { cancelled = true },
+    })),
+  })
+  await assert.rejects(api.packedImageUrl('/images/a.webp'), /oversized/)
+  assert.equal(cancelled, true)
+  assert.equal(reports.length, 0)
+  assert.equal(blobs.size, 0)
+})
+
+test('browsers without streaming report bytes only after a valid full response arrives', async t => {
+  const gate = deferred()
+  const { api, reports } = await fixture(t, { fetchResponse: () => ({ ok: true, arrayBuffer: () => gate.promise }) })
+  const image = api.packedImageUrl('/images/a.webp')
+  for (let index = 0; index < 20; index++) await Promise.resolve()
+  assert.equal(reports.length, 0)
+  gate.resolve(bodies.get(packA.url).buffer)
+  await image
+  assert.deepEqual(reports, [{ id: 'image:/images/a.webp', bytes: 4 }, { id: 'image:/images/b.jpg', bytes: 4 }])
+})
 
 test('two images in one pack share one fetch and preserve their own bytes and MIME types', async t => {
   const gate = deferred()
@@ -113,12 +182,13 @@ test('a different pack is fetched only when one of its images is requested', asy
   assert.ok(calls.every(url => !/\.(?:mp4|webm)(?:$|[?#])/.test(url)))
 })
 
-test('a valid persistent cache hit prepares the image without a network request', async t => {
-  const { api, calls, blobs } = await fixture(t, {
+test('a valid persistent cache hit prepares the image and credits its bytes without a network request', async t => {
+  const { api, calls, blobs, reports } = await fixture(t, {
     cached: [['/pack-test' + packA.url, responseFor(bodies.get(packA.url))]],
   })
   const url = await api.packedImageUrl('/images/a.webp')
   assert.equal(calls.length, 0)
+  assert.deepEqual(reports, [{ id: 'image:/images/a.webp', bytes: 4 }, { id: 'image:/images/b.jpg', bytes: 4 }])
   assert.deepEqual([...new Uint8Array(await blobs.get(url).arrayBuffer())], [1, 2, 3, 4])
 })
 

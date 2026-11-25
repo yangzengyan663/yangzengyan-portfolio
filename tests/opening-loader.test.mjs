@@ -43,6 +43,7 @@ function opening() {
     'opening-rule': new Element(),
     root: new Element({ attributes: { inert: '', 'aria-hidden': 'true' } }),
     'opening-message': new Element({ hidden: true }),
+    'opening-details': new Element({ hidden: true }),
     'opening-retry': new Element({ hidden: true }),
   }
   const events = []
@@ -173,6 +174,93 @@ test('pending jobs never gain progress from elapsed time or trigger display prep
   assert.equal(displayCalls, 0)
   assert.equal(runner.events.length, 0)
   assert.equal(runner.nodes['opening-retry'].hidden, true)
+})
+
+test('received bytes update the number in real time while image decode and final display remain pending', async () => {
+  const runner = opening()
+  const image = { ...job('image:/cover.webp'), bytes: 1000000 }
+  const effect = job('effects')
+  const display = deferred()
+  runner.api.start([image, effect], () => display.promise)
+  runner.api.reportBytes(image.id, 250000)
+  assert.equal(percent(runner), 8)
+  assert.equal(runner.nodes['opening-rule'].getAttribute('aria-valuenow'), '8')
+  assert.match(runner.nodes['opening-details'].textContent, /0\.25 \/ 1\.00 MB/)
+  assert.match(runner.nodes['opening-details'].textContent, /图片就绪 0 \/ 1/)
+  await runner.advanceTo(600000)
+  assert.equal(percent(runner), 8)
+  runner.api.reportBytes(image.id, 1000000)
+  assert.equal(percent(runner), 33)
+  assert.match(runner.nodes['opening-message'].textContent, /解码/)
+  effect.pending.resolve()
+  await runner.flush()
+  assert.equal(percent(runner), 66)
+  assert.equal(hidden(runner), false)
+  image.pending.resolve()
+  await runner.flush()
+  assert.equal(percent(runner), 66)
+  assert.match(runner.nodes['opening-details'].textContent, /图片就绪 1 \/ 1/)
+  display.resolve()
+  await runner.advanceTo(600080)
+  assert.equal(percent(runner), 100)
+  assert.equal(hidden(runner), true)
+})
+
+test('byte progress is bounded, deduplicated, and cannot unlock the original page', async () => {
+  const runner = opening()
+  const image = { ...job('image:/cover.webp'), bytes: 8 }
+  runner.api.start([image], () => new Promise(() => {}))
+  for (const value of [-1, NaN, Infinity]) runner.api.reportBytes(image.id, value)
+  runner.api.reportBytes('unknown', 100)
+  assert.equal(percent(runner), 0)
+  runner.api.reportBytes(image.id, 4)
+  assert.equal(percent(runner), 25)
+  runner.api.reportBytes(image.id, 4)
+  runner.api.reportBytes(image.id, 2)
+  assert.equal(percent(runner), 25)
+  runner.api.reportBytes(image.id, 100)
+  assert.equal(percent(runner), 50)
+  assert.match(runner.nodes['opening-details'].textContent, /8 \/ 8 B/)
+  await runner.advanceTo(3600000)
+  assert.equal(percent(runner), 50)
+  assert.equal(hidden(runner), false)
+  assert.equal(runner.nodes.root.hasAttribute('inert'), true)
+})
+
+test('a successful individual fallback credits its original bytes once and background counts show actual frames', async () => {
+  const runner = opening()
+  const image = { ...job('image:/cover.webp'), bytes: 8 }
+  const display = deferred()
+  runner.api.reportBackgrounds(1, 2)
+  runner.api.start([image], () => display.promise)
+  runner.api.reportBytes(image.id, 2)
+  image.pending.resolve()
+  await runner.flush()
+  assert.match(runner.nodes['opening-details'].textContent, /8 \/ 8 B/)
+  assert.match(runner.nodes['opening-details'].textContent, /背景动画 1 \/ 2/)
+  assert.match(runner.nodes['opening-message'].textContent, /背景动画/)
+  assert.equal(percent(runner), 50)
+  runner.api.reportBackgrounds(2, 2)
+  assert.match(runner.nodes['opening-details'].textContent, /背景动画 2 \/ 2/)
+  assert.match(runner.nodes['opening-message'].textContent, /检查页面/)
+  assert.equal(percent(runner), 50)
+  display.resolve()
+  await runner.advanceTo(80)
+  assert.equal(percent(runner), 100)
+})
+
+test('late stream events preserve the loading error and never replace it with an optimistic status', async () => {
+  const runner = opening()
+  const image = { ...job('image:/cover.webp'), bytes: 8 }
+  runner.api.start([image], () => {})
+  image.pending.reject(new Error('broken'))
+  await runner.flush()
+  const error = runner.nodes['opening-message'].textContent
+  runner.api.reportBytes(image.id, 4)
+  runner.api.reportBackgrounds(2, 2)
+  assert.equal(runner.nodes['opening-message'].textContent, error)
+  assert.equal(runner.nodes['opening-retry'].hidden, false)
+  assert.equal(percent(runner), 25)
 })
 
 test('at most four resource jobs run concurrently and a completion frees the next slot', async () => {

@@ -8,6 +8,43 @@ const cacheName = 'portfolio-display-packs-v1'
 
 export const hasPackedImage = source => entries.has(source)
 
+function reportReceived(pack, received) {
+  const opening = globalThis.window?.__portfolioOpening
+  if (!opening?.reportBytes) return
+  for (const image of pack.images) {
+    opening.reportBytes(`image:${image.source}`, Math.min(image.length, Math.max(0, received - image.offset)))
+  }
+}
+
+async function readResponse(response, pack) {
+  if (!response.body?.getReader) {
+    const bytes = await response.arrayBuffer()
+    if (bytes.byteLength !== pack.bytes) throw new Error('Display image pack is incomplete')
+    reportReceived(pack, bytes.byteLength)
+    return bytes
+  }
+  const reader = response.body.getReader()
+  const bytes = new Uint8Array(pack.bytes)
+  let received = 0
+  try {
+    while (true) {
+      const { done, value } = await reader.read()
+      if (done) break
+      if (received + value.byteLength > pack.bytes) throw new Error('Display image pack is oversized')
+      bytes.set(value, received)
+      received += value.byteLength
+      reportReceived(pack, received)
+    }
+    if (received !== pack.bytes) throw new Error('Display image pack is incomplete')
+    return bytes.buffer
+  } catch (error) {
+    try { await reader.cancel() } catch {}
+    throw error
+  } finally {
+    reader.releaseLock()
+  }
+}
+
 async function readPack(pack) {
   const url = new URL(assetUrl(pack.url), document.baseURI).href
   let cache
@@ -16,14 +53,16 @@ async function readPack(pack) {
     const cached = await cache?.match(url)
     if (cached) {
       const bytes = await cached.arrayBuffer()
-      if (bytes.byteLength === pack.bytes) return bytes
+      if (bytes.byteLength === pack.bytes) {
+        reportReceived(pack, bytes.byteLength)
+        return bytes
+      }
       await cache.delete(url)
     }
   } catch {}
   const response = await fetch(url, { cache: 'force-cache' })
   if (!response.ok) throw new Error('Display image pack is unavailable')
-  const bytes = await response.arrayBuffer()
-  if (bytes.byteLength !== pack.bytes) throw new Error('Display image pack is incomplete')
+  const bytes = await readResponse(response, pack)
   try {
     await cache?.put(url, new Response(bytes, { headers: { 'Content-Type': 'application/octet-stream' } }))
   } catch {}

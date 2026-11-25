@@ -7,6 +7,7 @@ import { placeholderFor } from '../src/posterPlaceholders.js'
 const source = fs.readFileSync(new URL('../src/openingResources.js', import.meta.url), 'utf8')
 const asModule = code => 'data:text/javascript;base64,' + Buffer.from(code).toString('base64')
 const dependencies = {
+  './displayPackManifest.js': new URL('../src/displayPackManifest.js', import.meta.url).href,
   './assetPaths': new URL('../src/assetPaths.js', import.meta.url).href,
   './preparedImages': asModule(
     'export const prepareImage = source => globalThis.__openingResourcesTest.prepareImage(source);' +

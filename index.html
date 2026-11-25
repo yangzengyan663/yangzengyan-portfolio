@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#050505" />
-    <meta name="portfolio-build" content="20261125-clear-backgrounds" />
+    <meta name="portfolio-build" content="20261125-live-progress" />
     <meta name="description" content="杨增延的 AIGC 视觉设计作品集：原创音乐 MV、动画短剧、传统文化影像与商业广告作品。" />
     <title>Yang Zengyan - Visual / AI / Brand Designer</title>
     <style>
@@ -13,14 +13,16 @@
       .hero-loader [hidden]{display:none!important}
       .hero-loader{position:fixed;z-index:2000;inset:0;display:grid;place-content:center;justify-items:center;gap:clamp(1.35rem,3vh,2.35rem);box-sizing:border-box;overflow:hidden;padding:max(clamp(1rem,3vw,2.5rem),env(safe-area-inset-top,0px)) max(clamp(1rem,3vw,2.5rem),env(safe-area-inset-right,0px)) max(clamp(1rem,3vw,2.5rem),env(safe-area-inset-bottom,0px)) max(clamp(1rem,3vw,2.5rem),env(safe-area-inset-left,0px));background:radial-gradient(circle at 50% 48%,#171022 0,#0b0715 38%,#05050c 78%);text-align:center;transform:scale(1);transition:opacity .55s ease,visibility .55s ease,transform .7s cubic-bezier(.22,1,.36,1)}.hero-loader span{display:block;min-width:3.7ch;max-width:100%;font-size:clamp(5rem,min(22vw,24vh),13rem);font-weight:500;font-variant-numeric:tabular-nums;line-height:.75;letter-spacing:-.075em;white-space:nowrap;color:#f3f1fb;text-shadow:0 0 44px rgba(183,137,255,.18);animation:heroLoaderBreath 1.2s ease-in-out infinite alternate}.hero-loader-rule{position:relative;width:clamp(12rem,28vw,24rem);max-width:72vw;height:2px;overflow:hidden;border-radius:999px;background:rgba(255,255,255,.14)}.hero-loader-rule::after{content:'';position:absolute;inset:0;border-radius:inherit;background:linear-gradient(90deg,#9d62ef,#e5caff 58%,#fff);box-shadow:0 0 16px rgba(190,132,255,.72);transform:scaleX(var(--loader-progress,0));transform-origin:left center;transition:transform .16s linear}.hero-loader.is-hidden{opacity:0;visibility:hidden;pointer-events:none;transform:scale(1.055)}@keyframes heroLoaderBreath{from{opacity:.82;filter:blur(0)}to{opacity:1;filter:drop-shadow(0 0 12px rgba(201,151,255,.25))}}@media(max-width:30rem),(max-height:32rem){.hero-loader{gap:1.15rem}.hero-loader span{font-size:clamp(4.6rem,min(25vw,23vh),8rem);line-height:.78}.hero-loader-rule{width:clamp(10rem,52vw,16rem);max-width:70vw}}@media(prefers-reduced-motion:reduce){.hero-loader span{animation:none}.hero-loader,.hero-loader-rule::after{transition-duration:.01ms}}
       .hero-loader p{max-width:28rem;margin:0;color:#eee5ff;font-size:1rem;line-height:1.7}
+      .hero-loader #opening-details{color:#bfb0d4;font-size:.875rem;line-height:1.8;white-space:pre-line;font-variant-numeric:tabular-nums}
       .hero-loader button{padding:.75rem 1.4rem;border:1px solid #c7a4f8;border-radius:999px;background:#26173d;color:#fff;font:inherit;cursor:pointer}
     </style>
   </head>
   <body>
     <div id="opening-loader" class="hero-loader" role="status" aria-label="正在加载作品集" style="--loader-progress:0">
       <span id="opening-count" aria-hidden="true">0%</span>
-      <div id="opening-rule" class="hero-loader-rule" aria-hidden="true"></div>
-      <p id="opening-message" hidden>页面加载失败，请重新加载以打开完整作品集。</p>
+      <div id="opening-rule" class="hero-loader-rule" role="progressbar" aria-label="作品集准备进度" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"></div>
+      <p id="opening-message">正在加载页面组件</p>
+      <p id="opening-details" hidden></p>
       <button id="opening-retry" type="button" hidden>重新加载</button>
     </div>
     <div id="root" inert aria-hidden="true"></div>
@@ -30,22 +32,45 @@
         const count = document.getElementById('opening-count');
         const root = document.getElementById('root');
         const message = document.getElementById('opening-message');
+        const details = document.getElementById('opening-details');
+        const rule = document.getElementById('opening-rule');
         const retry = document.getElementById('opening-retry');
         const completed = new Set();
+        const received = new Map();
+        const resourcesById = new Map();
         let tasks = [], finalize, total = 0;
         let started = false, running = false, finished = false, finishing = false, fatal = false;
+        let hasError = false, backgrounds;
         let exitTimer, removeTimer;
         document.documentElement.classList.add('portfolio-loading');
         const draw = () => {
-          const value = total ? Math.floor(completed.size / total * 100) : 0;
+          const prepared = tasks.reduce((sum, task) => sum + (completed.has(task.id) ? 1 : task.bytes > 0 ? (received.get(task.id) || 0) / task.bytes : 0), completed.has('__display_ready__') ? 1 : 0);
+          const value = total ? Math.min(completed.has('__display_ready__') ? 100 : 99, Math.floor(prepared / total * 100)) : 0;
           count.textContent = value + '%';
           loader.style.setProperty('--loader-progress', value / 100);
+          rule.setAttribute('aria-valuenow', value);
           if (started) {
-            message.hidden = false;
-            message.textContent = '正在准备清晰封面与背景动画 · ' + completed.size + ' / ' + total;
+            const images = tasks.filter(task => task.id.startsWith('image:'));
+            const readyImages = images.filter(task => completed.has(task.id)).length;
+            const bytes = images.reduce((sum, task) => sum + (task.bytes || 0), 0);
+            const loaded = images.reduce((sum, task) => sum + (completed.has(task.id) ? task.bytes || 0 : received.get(task.id) || 0), 0);
+            const unit = bytes >= 1000000 ? 1000000 : bytes >= 1000 ? 1000 : 1;
+            const suffix = unit === 1000000 ? 'MB' : unit === 1000 ? 'KB' : 'B';
+            const amount = number => (number / unit).toFixed(unit === 1 ? 0 : 2);
+            details.hidden = false;
+            details.textContent = (bytes ? '清晰图片 ' + amount(loaded) + ' / ' + amount(bytes) + ' ' + suffix + '\n' : '') +
+              (images.length ? '图片就绪 ' + readyImages + ' / ' + images.length + ' · ' : '') +
+              (backgrounds ? '背景动画 ' + backgrounds.ready + ' / ' + backgrounds.total : '背景动画准备中');
+            if (!hasError) {
+              message.hidden = false;
+              message.textContent = completed.has('__display_ready__') ? '画面已准备完成' :
+                readyImages < images.length ? (bytes && loaded === bytes ? '正在解码清晰图片' : '正在加载清晰图片与背景动画') :
+                !backgrounds || backgrounds.ready < backgrounds.total ? '正在准备背景动画' : '正在检查页面显示';
+            }
           }
         };
         const showError = () => {
+          hasError = true;
           message.hidden = false;
           message.textContent = fatal ? '页面加载失败，请重新加载。' : '部分内容尚未加载成功，请重试后继续。';
           retry.textContent = fatal ? '重新加载' : '重试未完成内容';
@@ -77,6 +102,7 @@
         const run = async () => {
           if (running || finished || finishing || fatal) return;
           running = true;
+          hasError = false;
           retry.hidden = true;
           loader.setAttribute('role', 'status');
           loader.setAttribute('aria-label', '正在加载作品集');
@@ -111,9 +137,25 @@
             started = true;
             if (!Array.isArray(resources) || resources.some(task => !task.id || typeof task.run !== 'function') || typeof prepareDisplay !== 'function') { fail(); return; }
             tasks = [...new Map(resources.map(task => [task.id, task])).values()];
+            tasks = tasks.map(task => ({ ...task, bytes: Number.isFinite(task.bytes) && task.bytes > 0 ? task.bytes : 0 }));
+            tasks.forEach(task => { resourcesById.set(task.id, task); });
             finalize = prepareDisplay;
             total = tasks.length + 1;
             run();
+          },
+          reportBytes(id, bytes) {
+            if (finished || fatal) return;
+            const task = resourcesById.get(id);
+            if (!task || !task.bytes || !Number.isFinite(bytes)) return;
+            const next = Math.min(task.bytes, Math.max(0, bytes));
+            if (next <= (received.get(id) || 0)) return;
+            received.set(id, next);
+            draw();
+          },
+          reportBackgrounds(ready, total) {
+            if (finished || fatal || !Number.isInteger(ready) || !Number.isInteger(total) || total <= 0 || ready < 0 || ready > total) return;
+            backgrounds = { ready, total };
+            draw();
           },
           fail,
           isFinished: () => finished,

@@ -1,9 +1,11 @@
 import { prepareImage, preparedImageSource } from './preparedImages'
 import { effectPreparationTasks } from './effectModules'
 import { waitForBackgrounds } from './backgroundReadiness'
+import displayPacks from './displayPackManifest.js'
 
 const displayImages = () => [...document.querySelectorAll('#root img[data-media-src]')]
 const paint = () => new Promise(resolve => requestAnimationFrame(resolve))
+const imageBytes = new Map(displayPacks.flatMap(pack => pack.images.map(image => [image.source, image.length])))
 
 export function openingPreparation() {
   const images = displayImages()
@@ -11,7 +13,7 @@ export function openingPreparation() {
   if (!sources.length) throw new Error('Portfolio images are not mounted')
   return {
     tasks: [
-      ...sources.map(source => ({ id: `image:${source}`, run: () => prepareImage(source) })),
+      ...sources.map(source => ({ id: `image:${source}`, bytes: imageBytes.get(source) || 0, run: () => prepareImage(source) })),
       ...effectPreparationTasks(),
     ],
     async finalize() {
