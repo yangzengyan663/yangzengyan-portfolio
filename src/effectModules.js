@@ -1,15 +1,18 @@
-// Share the exact imports between opening preparation and the deferred effects.
-export const loadWebThreads = () => import('./components/WebThreads')
-export const loadLightPillar = () => import('./components/LightPillar')
-export const loadProfileText = () => import('./ProfileTextEffects')
+import { useSyncExternalStore } from 'react'
+import './components/LightPillar.css'
+import './components/FoldText.css'
+
+// Small effect styles join the inline shell; all optional effect code shares
+// one lazy request instead of three JS requests and their extra stylesheets.
+const loadBundle = () => import('./effectsBundle')
+export const loadWebThreads = () => loadBundle().then(bundle => ({ default: bundle.WebThreads }))
+export const loadLightPillar = () => loadBundle().then(bundle => ({ default: bundle.LightPillar }))
+export const loadProfileText = () => loadBundle().then(bundle => ({ default: bundle.ProfileTextEffects }))
 
 export function effectPreparationTasks() {
   if (window.matchMedia('(prefers-reduced-motion: reduce), (max-width: 767px)').matches || navigator.connection?.saveData) return []
-  const tasks = [{ id: 'threads', run: loadWebThreads }]
-  if ('IntersectionObserver' in window) tasks.push({ id: 'pillar', run: loadLightPillar }, { id: 'text', run: loadProfileText })
-  return tasks
+  return [{ id: 'effects', run: loadBundle }]
 }
-import { useSyncExternalStore } from 'react'
 
 const subscribe = notify => {
   document.addEventListener('portfolio-opening-finished', notify)
@@ -17,4 +20,3 @@ const subscribe = notify => {
 }
 const snapshot = () => !window.__portfolioOpening || window.__portfolioOpening.isFinished()
 export const useOpeningFinished = () => useSyncExternalStore(subscribe, snapshot, () => false)
-

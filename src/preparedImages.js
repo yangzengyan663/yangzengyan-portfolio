@@ -1,9 +1,11 @@
 import { useCallback, useSyncExternalStore } from 'react'
 import { assetUrl } from './assetPaths.js'
+import { hasPackedImage, packedImageUrl } from './displayImagePack.js'
 
 const images = new Map()
 const subscribers = new Map()
 const serverSnapshot = () => false
+export const preparedImageSource = source => images.get(source)?.ready ? images.get(source).url : undefined
 
 // Only full image sources belong in this cache. In particular, never turn a
 // film URL or an inline placeholder into an opening-time media request.
@@ -47,16 +49,19 @@ export function prepareImage(source) {
     resolve(image)
     for (const notify of [...(subscribers.get(source) || [])]) notify()
   }
-  try {
+  const assign = url => { try {
+    record.url = url
     image = new Image()
     image.loading = 'eager'
     image.decoding = 'async'
     image.onload = loaded
     image.onerror = () => fail(new Error('Image could not be loaded: ' + source))
-    image.src = assetUrl(source)
+    image.src = url
     // A cached resource can already be complete before the load callback runs.
     if (image.complete && image.naturalWidth > 0) loaded()
-  } catch (error) { fail(error) }
+  } catch (error) { fail(error) } }
+  if (hasPackedImage(source)) packedImageUrl(source).then(assign, () => assign(assetUrl(source)))
+  else assign(assetUrl(source))
   return promise
 }
 

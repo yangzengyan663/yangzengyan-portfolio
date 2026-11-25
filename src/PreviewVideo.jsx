@@ -5,7 +5,7 @@ import { bindHoverPreview } from './hoverPreviewController'
 
 // Keep every cover in the real opening progress; load a clip only on intent.
 export default function PreviewVideo({
-  src, poster, rootMargin = '800px 0px', className = '', alt = '视频首帧',
+  src, poster, rootMargin = '1600px 0px', className = '', alt = '视频首帧',
   active: ignoredActive, autoPlay, muted, loop, playsInline, preload, controls, style, ...props
 }) {
   const imageRef = useRef(null)
@@ -31,7 +31,7 @@ export default function PreviewVideo({
   }, [active])
   return <><LazyImage {...props} ref={imageRef} src={poster || previewPoster(src)} alt={alt} style={style}
     className={`preview-video-poster ${className}`.trim()}
-    rootMargin={rootMargin === '0px' ? '800px 0px' : rootMargin} />
+    rootMargin={rootMargin === '0px' ? '1600px 0px' : rootMargin} />
     {active && <video ref={videoRef} className={`portfolio-hover-preview ${playing ? 'is-playing' : ''}`}
       style={style?.objectFit ? { objectFit: style.objectFit } : undefined}
       muted loop playsInline preload="none" tabIndex={-1} aria-hidden="true" />}</>

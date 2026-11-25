@@ -6,6 +6,7 @@ import { pathToFileURL } from 'node:url'
 import { observeNearViewport } from '../src/useNearViewport.js'
 import { previewPoster } from '../src/media.js'
 import { placeholderFor } from '../src/posterPlaceholders.js'
+import displayPacks from '../src/displayPackManifest.js'
 
 const require = createRequire(new URL('../package.json', import.meta.url))
 const React = require('react')
@@ -13,6 +14,16 @@ const { renderToStaticMarkup } = require('react-dom/server')
 const { transformWithOxc } = await import(pathToFileURL(require.resolve('vite')).href)
 const reactUrl = pathToFileURL(require.resolve('react')).href
 const jsxUrl = pathToFileURL(require.resolve('react/jsx-runtime')).href
+const moduleUrl = code => 'data:text/javascript;base64,' + Buffer.from(code).toString('base64')
+const openingUrl = moduleUrl('export const useOpeningFinished = () => false')
+const lazyImports = {
+  './assetPaths': new URL('../src/assetPaths.js', import.meta.url).href,
+  './preparedImages': new URL('../src/preparedImages.js', import.meta.url).href,
+  './useNearViewport': new URL('../src/useNearViewport.js', import.meta.url).href,
+  './posterPlaceholders': new URL('../src/posterPlaceholders.js', import.meta.url).href,
+  './displayImagePack': new URL('../src/displayImagePack.js', import.meta.url).href,
+  './effectModules': openingUrl,
+}
 const compile = async (filename, imports) => {
   const file = new URL(`../src/${filename}`, import.meta.url)
   let { code } = await transformWithOxc(await readFile(file, 'utf8'), filename, { jsx: { runtime: 'automatic' } })
@@ -21,7 +32,7 @@ const compile = async (filename, imports) => {
   }
   return `data:text/javascript;base64,${Buffer.from(code).toString('base64')}`
 }
-const lazyUrl = await compile('LazyImage.jsx', { './assetPaths': new URL('../src/assetPaths.js', import.meta.url).href, './preparedImages': new URL('../src/preparedImages.js', import.meta.url).href, './useNearViewport': new URL('../src/useNearViewport.js', import.meta.url).href, './posterPlaceholders': new URL('../src/posterPlaceholders.js', import.meta.url).href })
+const lazyUrl = await compile('LazyImage.jsx', lazyImports)
 const { default: LazyImage } = await import(lazyUrl)
 const { default: PreviewVideo } = await import(await compile('PreviewVideo.jsx', {
   './LazyImage': lazyUrl, './media': new URL('../src/media.js', import.meta.url).href,
@@ -184,21 +195,84 @@ test('eager images immediately expose their full source and retain the inline ba
   assert.match(tag, /background-image:url/)
 })
 
+test('all 42 managed display images keep inline placeholders even when eager and never race their pack with original URLs', () => {
+  const sources = [...new Set(displayPacks.flatMap(pack => pack.images.map(image => image.source)))]
+  assert.equal(sources.length, 42)
+  for (const src of sources) for (const loading of ['eager', 'lazy']) {
+    const tag = imgTag(renderToStaticMarkup(React.createElement(LazyImage, { src, srcSet: src + '?large 2x', loading })))
+    const placeholder = placeholderFor(src)
+    if (placeholder) assert.ok(tag.includes(`src="${placeholder}"`), src)
+    else assert.doesNotMatch(tag, /\ssrc=/, src)
+    assert.doesNotMatch(tag, /\ssrcSet=/i, src)
+    assert.match(tag, /data-media-loaded="false"/, src)
+    assert.match(tag, /loading="eager"/, 'Inline data must decode without waiting for a scroll: ' + src)
+  }
+})
+
 test('a prepared far image reveals its full source eagerly without waiting for viewport observation', async () => {
-  const prepared = 'data:text/javascript;base64,' + Buffer.from('export const usePreparedImage = () => true').toString('base64')
+  const prepared = moduleUrl(`export const usePreparedImage = () => true;
+    export const preparedImageSource = () => 'blob:https://portfolio.test/prepared-cover';
+    export const prepareImage = () => Promise.reject(new Error('a ready image must not prepare again'));`)
   const { default: PreparedLazyImage } = await import(await compile('LazyImage.jsx', {
-    './assetPaths': new URL('../src/assetPaths.js', import.meta.url).href,
+    ...lazyImports,
     './preparedImages': prepared,
-    './useNearViewport': new URL('../src/useNearViewport.js', import.meta.url).href,
-    './posterPlaceholders': new URL('../src/posterPlaceholders.js', import.meta.url).href,
   }))
   const tag = imgTag(renderToStaticMarkup(React.createElement(PreparedLazyImage, {
     src: '/media-previews/cup-1.jpg', loading: 'lazy',
   })))
-  assert.match(tag, /\ssrc="\/media-previews\/cup-1\.jpg"/)
+  assert.match(tag, /\ssrc="blob:https:\/\/portfolio\.test\/prepared-cover"/)
   assert.match(tag, /\sloading="eager"/)
   assert.match(tag, /background-image:url/)
   assert.match(tag, /data-media-src="\/media-previews\/cup-1\.jpg"/)
+})
+
+test('managed images prepare only after entry and viewport approach, then display their registry blob', async t => {
+  const prior = globalThis.__lazyPackProbe
+  t.after(() => {
+    if (prior === undefined) delete globalThis.__lazyPackProbe
+    else globalThis.__lazyPackProbe = prior
+  })
+  const hooks = moduleUrl(`
+    export const forwardRef = render => render;
+    export const useRef = () => ({ current: null });
+    export const useCallback = callback => callback;
+    export const useState = initial => [initial, () => {}];
+    export const useEffect = effect => globalThis.__lazyPackProbe.effects.push(effect);
+  `)
+  const jsx = moduleUrl('export const jsx = (type, props) => ({ type, props }); export const jsxs = jsx;')
+  const store = moduleUrl(`
+    export const usePreparedImage = () => globalThis.__lazyPackProbe.prepared;
+    export const preparedImageSource = () => 'blob:https://portfolio.test/near-cover';
+    export const prepareImage = source => { globalThis.__lazyPackProbe.calls.push(source); return Promise.resolve(); };
+  `)
+  const { default: Probe } = await import(await compile('LazyImage.jsx', {
+    ...lazyImports, react: hooks, 'react/jsx-runtime': jsx,
+    './preparedImages': store,
+    './useNearViewport': moduleUrl('export default () => globalThis.__lazyPackProbe.near;'),
+    './displayImagePack': moduleUrl('export const hasPackedImage = () => true;'),
+    './effectModules': moduleUrl('export const useOpeningFinished = () => globalThis.__lazyPackProbe.opening;'),
+  }))
+  const source = '/media-previews/cup-1.jpg'
+  const render = state => {
+    globalThis.__lazyPackProbe = { near: false, opening: false, prepared: false, effects: [], calls: [], ...state }
+    const result = Probe({ src: source, srcSet: '/bigger.webp 2x' })
+    for (const effect of globalThis.__lazyPackProbe.effects) effect()
+    return { ...globalThis.__lazyPackProbe, props: result.props }
+  }
+  for (const state of [{ near: false, opening: false }, { near: true, opening: false }, { near: false, opening: true }]) {
+    const result = render(state)
+    assert.deepEqual(result.calls, [], JSON.stringify(state))
+    assert.ok(result.props.src.startsWith('data:image/'), JSON.stringify(state))
+    assert.equal(result.props.srcSet, undefined)
+  }
+  const approaching = render({ near: true, opening: true })
+  assert.deepEqual(approaching.calls, [source])
+  assert.ok(approaching.props.src.startsWith('data:image/'))
+  const ready = render({ near: false, opening: true, prepared: true })
+  assert.deepEqual(ready.calls, [])
+  assert.equal(ready.props.src, 'blob:https://portfolio.test/near-cover')
+  assert.equal(ready.props.loading, 'eager')
+  assert.equal(ready.props.srcSet, undefined)
 })
 
 test('PreviewVideo initially renders only its image, even when given inherited active or autoplay props', () => {

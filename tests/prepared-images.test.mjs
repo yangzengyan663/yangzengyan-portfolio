@@ -20,9 +20,17 @@ const deferred = () => {
   return { promise, resolve, reject }
 }
 
-async function fixture(t) {
+async function fixture(t, { packedSources = [], packResult = () => Promise.resolve('blob:prepared-test/cover') } = {}) {
   const priorImage = globalThis.Image
   const priorCapture = globalThis.__preparedImageTestCapture
+  const priorPack = globalThis.__preparedImagePackTest
+  const packCalls = []
+  globalThis.__preparedImagePackTest = source => { packCalls.push(source); return packResult(source) }
+  const packModule = moduleUrl(`
+    const sources = new Set(${JSON.stringify(packedSources)});
+    export const hasPackedImage = source => sources.has(source);
+    export const packedImageUrl = source => globalThis.__preparedImagePackTest(source);
+  `)
   const created = []
   class Image {
     naturalWidth = 0
@@ -40,15 +48,19 @@ async function fixture(t) {
     else globalThis.Image = priorImage
     if (priorCapture === undefined) delete globalThis.__preparedImageTestCapture
     else globalThis.__preparedImageTestCapture = priorCapture
+    if (priorPack === undefined) delete globalThis.__preparedImagePackTest
+    else globalThis.__preparedImagePackTest = priorPack
   })
   const code = source.replace("from 'react'", `from '${react}'`)
-    .replace("'./assetPaths.js'", JSON.stringify(pathsUrl)) + '\n// isolated test registry ' + ++instance
+    .replace("'./assetPaths.js'", JSON.stringify(pathsUrl))
+    .replace("'./displayImagePack.js'", JSON.stringify(packModule)) + '\n// isolated test registry ' + ++instance
   const api = await import(moduleUrl(code))
   const store = image => {
     const ready = api.usePreparedImage(image)
     return { ready, ...globalThis.__preparedImageTestCapture }
   }
-  return { api, created, store }
+  const flush = async () => { for (let index = 0; index < 5; index++) await Promise.resolve() }
+  return { api, created, store, packCalls, flush }
 }
 
 test('concurrent preparation deduplicates a source and readiness waits for actual decoding', async t => {
@@ -61,6 +73,7 @@ test('concurrent preparation deduplicates a source and readiness waits for actua
   assert.equal(image.src, '/image-test/images/cover.webp')
   assert.equal(image.loading, 'eager')
   assert.equal(store('/images/cover.webp').ready, false)
+  assert.equal(api.preparedImageSource('/images/cover.webp'), undefined)
   image.loaded()
   image.loaded() // A cached load notification must not decode or count twice.
   assert.equal(image.decodeCalls, 1)
@@ -68,6 +81,7 @@ test('concurrent preparation deduplicates a source and readiness waits for actua
   image.decodingResult.resolve()
   assert.equal(await first, image)
   assert.equal(store('/images/cover.webp').ready, true)
+  assert.equal(api.preparedImageSource('/images/cover.webp'), image.src)
   assert.equal(api.prepareImage('/images/cover.webp'), first)
   assert.equal(created.length, 1)
 })
@@ -149,4 +163,65 @@ test('video URLs and inline placeholders cannot start opening-time media request
     await assert.rejects(api.prepareImage(input), /Only a static image/)
   }
   assert.equal(created.length, 0)
+})
+
+test('a packed image stays unprepared until its blob URL has loaded and decoded', async t => {
+  const source = '/images/packed.webp'
+  const pack = deferred()
+  const { api, created, store, packCalls, flush } = await fixture(t, { packedSources: [source], packResult: () => pack.promise })
+  const first = api.prepareImage(source)
+  assert.equal(api.prepareImage(source), first)
+  assert.deepEqual(packCalls, [source])
+  assert.equal(created.length, 0)
+  assert.equal(api.preparedImageSource(source), undefined)
+  pack.resolve('blob:prepared-test/packed-cover')
+  await flush()
+  assert.equal(created.length, 1)
+  assert.equal(created[0].src, 'blob:prepared-test/packed-cover')
+  created[0].loaded(640)
+  assert.equal(store(source).ready, false)
+  assert.equal(api.preparedImageSource(source), undefined)
+  created[0].decodingResult.resolve()
+  await first
+  assert.equal(store(source).ready, true)
+  assert.equal(api.preparedImageSource(source), 'blob:prepared-test/packed-cover')
+})
+
+test('a failed pack falls back to the original image without reporting success before decode', async t => {
+  const source = '/images/fallback.webp'
+  const { api, created, store, packCalls, flush } = await fixture(t, {
+    packedSources: [source], packResult: () => Promise.reject(new Error('pack unavailable')),
+  })
+  const loading = api.prepareImage(source)
+  await flush()
+  assert.deepEqual(packCalls, [source])
+  assert.equal(created.length, 1)
+  assert.equal(created[0].src, '/image-test/images/fallback.webp')
+  assert.equal(store(source).ready, false)
+  assert.equal(api.preparedImageSource(source), undefined)
+  created[0].loaded(640)
+  assert.equal(store(source).ready, false)
+  created[0].decodingResult.resolve()
+  await loading
+  assert.equal(api.preparedImageSource(source), '/image-test/images/fallback.webp')
+})
+
+test('a failed blob decode is not readiness and leaves the image eligible for retry', async t => {
+  const source = '/images/invalid-blob.webp'
+  const { api, created, store, flush } = await fixture(t, { packedSources: [source] })
+  const first = api.prepareImage(source)
+  const rejection = assert.rejects(first, /blob decode failed/)
+  await flush()
+  created[0].loaded(640)
+  created[0].decodingResult.reject(new Error('blob decode failed'))
+  await rejection
+  assert.equal(store(source).ready, false)
+  assert.equal(api.preparedImageSource(source), undefined)
+  const retry = api.prepareImage(source)
+  assert.notEqual(retry, first)
+  await flush()
+  created[1].loaded(640)
+  created[1].decodingResult.resolve()
+  await retry
+  assert.equal(store(source).ready, true)
 })

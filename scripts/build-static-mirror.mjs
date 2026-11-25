@@ -32,5 +32,7 @@ if (Object.keys(previews).length !== films.length || films.some(film => !preview
   throw new Error('Every original film must have a hover preview')
 }
 await Promise.all(Object.values(previews).map(filename => access(path.join(output, filename.slice(1)))))
+const packManifest = (await import('../src/displayPackManifest.js')).default
+await Promise.all(packManifest.map(pack => access(path.join(output, pack.url.slice(1)))))
 await writeFile(path.join(output, '.nojekyll'), '')
 console.log('Original portfolio mirror ready: all 28 films, image-first gallery, original effects.')

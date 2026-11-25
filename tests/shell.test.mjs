@@ -40,12 +40,13 @@ test('embedded module parses and lazy imports use an HTTP document base', () => 
   assert(code.includes('document.baseURI'))
   assert(code.includes('import(new URL('))
 })
-test('older module browsers retain the external entry, and lazy chunks share its identity', () => {
+test('older module browsers retain the external entry, and the shared effects chunk imports that identity', () => {
   assert(html.includes(`import(${JSON.stringify(entry)})`))
   const original = new URL('../dist' + entry, import.meta.url)
   assert(fs.existsSync(original))
   const assets = new URL('../dist/assets/', import.meta.url)
-  const lazy = fs.readdirSync(assets).filter(name => /^(ProfileTextEffects|WebThreads)-.*\.js$/.test(name))
-  assert(lazy.length >= 2)
+  const lazy = fs.readdirSync(assets).filter(name => /^effectsBundle-.*\.js$/.test(name))
+  assert.equal(lazy.length, 1)
   for (const name of lazy) assert(fs.readFileSync(new URL(name, assets), 'utf8').includes(path.basename(entry)))
+  assert.equal(fs.readdirSync(assets).filter(name => /^(LightPillar|ProfileTextEffects|WebThreads)-.*\.(?:js|css)$/.test(name)).length, 0)
 })

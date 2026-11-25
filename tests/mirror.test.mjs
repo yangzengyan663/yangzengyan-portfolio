@@ -63,11 +63,12 @@ test('mirror entry and style stay inline while the external entry identity exist
   assert.equal(checked.status, 0, checked.stderr)
 })
 
-test('all three inline lazy imports resolve inside the subpath to real JS assets', () => {
+test('the single optional effects request stays inside the project and shares the main module identity', () => {
   const imports = [...code.matchAll(/import\(new URL\((['"])([^'"]+)\1,document\.baseURI\)\.href\)/g)].map(match => match[2])
-  assert.equal(imports.length, 3)
+  assert.equal(imports.length, 1)
   for (const href of imports) {
     assert.ok(href.startsWith(base + 'assets/'), href)
+    assert.match(path.basename(href), /^effectsBundle-.*\.js$/)
     assert.ok(nonemptyFile(diskPath(href)), `missing lazy asset: ${href}`)
     const chunk = fs.readFileSync(diskPath(href), 'utf8')
     assert.ok(chunk.includes(path.basename(entry)), `lazy chunk lost the original entry identity: ${href}`)
@@ -79,7 +80,9 @@ test('all three inline lazy imports resolve inside the subpath to real JS assets
 
 test('every generated preload dependency points at a real emitted JS or CSS file', () => {
   const dependencies = [...code.matchAll(/['"`](assets\/[^'"`]+\.(?:js|css))['"`]/g)].map(match => match[1])
-  assert.ok(dependencies.length >= 4)
+  const optionalScripts = [...new Set(dependencies.filter(name => name.endsWith('.js')))]
+  assert.ok(optionalScripts.length <= 1, 'Effect preloading must not reintroduce separate JS requests')
+  assert.ok(!dependencies.some(name => name.endsWith('.css')), 'Effect styles are already included in the inline shell')
   for (const dependency of dependencies) {
     assert.ok(nonemptyFile(path.join(directory, dependency)), `missing preload dependency: ${dependency}`)
   }
