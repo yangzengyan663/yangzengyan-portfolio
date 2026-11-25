@@ -33,20 +33,21 @@ test('the independent manifest retains all 28 films in the compiled original app
   for (const film of films) assert.ok(code.includes(film), 'Film missing from the original application: ' + film)
 })
 
-test('embedded module parses and lazy imports use an HTTP document base', () => {
+test('embedded module parses and required backgrounds need no second JS request', () => {
   const checked = spawnSync(process.execPath, ['--check', '--input-type=module'], { input: code, encoding: 'utf8' })
   assert.equal(checked.status, 0, checked.stderr)
   assert(!/\bimport\s*\(\s*["'`]\.\//.test(code))
   assert(code.includes('document.baseURI'))
-  assert(code.includes('import(new URL('))
+  assert(!/\bimport\s*\(/.test(code), 'Required backgrounds must not wait for a second module download')
 })
-test('older module browsers retain the external entry, and the shared effects chunk imports that identity', () => {
+test('older module browsers retain a complete single external entry', () => {
   assert(html.includes(`import(${JSON.stringify(entry)})`))
   const original = new URL('../dist' + entry, import.meta.url)
   assert(fs.existsSync(original))
   const assets = new URL('../dist/assets/', import.meta.url)
   const lazy = fs.readdirSync(assets).filter(name => /^effectsBundle-.*\.js$/.test(name))
-  assert.equal(lazy.length, 1)
+  assert.equal(lazy.length, 0)
+  assert.equal(fs.readdirSync(assets).filter(name => name.endsWith('.js')).length, 1)
   for (const name of lazy) assert(fs.readFileSync(new URL(name, assets), 'utf8').includes(path.basename(entry)))
   assert.equal(fs.readdirSync(assets).filter(name => /^(LightPillar|ProfileTextEffects|WebThreads)-.*\.(?:js|css)$/.test(name)).length, 0)
 })

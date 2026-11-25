@@ -6,6 +6,21 @@ import displayPacks from './displayPackManifest.js'
 const displayImages = () => [...document.querySelectorAll('#root img[data-media-src]')]
 const paint = () => new Promise(resolve => requestAnimationFrame(resolve))
 const imageBytes = new Map(displayPacks.flatMap(pack => pack.images.map(image => [image.source, image.length])))
+const imageGroups = new Map(displayPacks.flatMap(pack => pack.images.map(image => [image.source, pack.url])))
+
+function downloadOrder(sources) {
+  const groups = new Map()
+  for (const source of sources) {
+    const key = imageGroups.get(source) || source
+    if (!groups.has(key)) groups.set(key, [])
+    groups.get(key).push(source)
+  }
+  // The four workers must start different packs instead of all waiting on
+  // the same home pack. Retain one request per pack and all clear images.
+  const queues = [...groups.values()]
+  return Array.from({ length: Math.max(...queues.map(group => group.length)) }, (_, index) =>
+    queues.flatMap(group => group[index] ? [group[index]] : [])).flat()
+}
 
 export function openingPreparation() {
   const images = displayImages()
@@ -13,7 +28,7 @@ export function openingPreparation() {
   if (!sources.length) throw new Error('Portfolio images are not mounted')
   return {
     tasks: [
-      ...sources.map(source => ({ id: `image:${source}`, bytes: imageBytes.get(source) || 0, run: () => prepareImage(source) })),
+      ...downloadOrder(sources).map(source => ({ id: `image:${source}`, bytes: imageBytes.get(source) || 0, run: () => prepareImage(source) })),
       ...effectPreparationTasks(),
     ],
     async finalize() {

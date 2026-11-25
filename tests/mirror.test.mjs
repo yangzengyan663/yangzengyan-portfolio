@@ -63,9 +63,9 @@ test('mirror entry and style stay inline while the external entry identity exist
   assert.equal(checked.status, 0, checked.stderr)
 })
 
-test('the single optional effects request stays inside the project and shares the main module identity', () => {
+test('the original effects are included in the mirror shell without an extra JS download', () => {
   const imports = [...code.matchAll(/import\(new URL\((['"])([^'"]+)\1,document\.baseURI\)\.href\)/g)].map(match => match[2])
-  assert.equal(imports.length, 1)
+  assert.equal(imports.length, 0)
   for (const href of imports) {
     assert.ok(href.startsWith(base + 'assets/'), href)
     assert.match(path.basename(href), /^effectsBundle-.*\.js$/)

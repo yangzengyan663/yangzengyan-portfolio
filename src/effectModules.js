@@ -1,10 +1,11 @@
 import { useSyncExternalStore } from 'react'
 import './components/LightPillar.css'
 import './components/FoldText.css'
+import * as bundle from './effectsBundle'
 
-// Small effect styles join the inline shell; all optional effect code shares
-// one lazy request instead of three JS requests and their extra stylesheets.
-const loadBundle = () => import('./effectsBundle')
+// Both original backgrounds are required before entry. Include their compact
+// implementation in the shell so a second slow JS request cannot hold 100%.
+const loadBundle = () => Promise.resolve(bundle)
 export const loadWebThreads = () => loadBundle().then(bundle => ({ default: bundle.WebThreads }))
 export const loadLightPillar = () => loadBundle().then(bundle => ({ default: bundle.LightPillar }))
 export const loadProfileText = () => loadBundle().then(bundle => ({ default: bundle.ProfileTextEffects }))

@@ -151,6 +151,20 @@ test('all 42 clear covers and the original effect code are prepared before entry
   assert.ok(scenario.images.every(image=>image.decodes===1 && image.currentSrc.startsWith('blob:')));
 });
 
+test('the first four workers begin four independent packs instead of waiting on the same home request', async () => {
+  scenario.images = allSources.map(source => new ImageNode(source))
+  const preparation = openingPreparation()
+  const pending = deferred()
+  scenario.prepareImage = source => { scenario.prepared.push(source); return pending.promise }
+  const running = preparation.tasks.slice(0, 4).map(task => task.run())
+  const packFor = source => packs.find(pack => pack.images.some(image => image.source === source))?.url
+  assert.equal(new Set(scenario.prepared.map(packFor)).size, 4)
+  assert.ok(scenario.prepared.some(source => homeSources.includes(source)))
+  assert.equal(new Set(preparation.tasks.filter(task => task.id.startsWith('image:')).map(task => task.id)).size, 42)
+  pending.resolve()
+  await Promise.all(running)
+})
+
 test('even a valid distant inline frame cannot replace its clear image at 100 percent', async () => {
   scenario.images=[new ImageNode(cover),new ImageNode(farSource)];
   const preparation=await prepareCritical();

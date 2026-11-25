@@ -269,7 +269,7 @@ const WebThreads = ({
 
     let raf = 0;
     let isVisible = true;
-    let isPageVisible = !document.hidden && !isPlayerOpen();
+    let isPageVisible = !document.hidden && !isPlayerOpen() && !document.documentElement.classList.contains('portfolio-loading');
     const t0 = performance.now();
     let lastFrame = 0;
 
@@ -310,11 +310,12 @@ const WebThreads = ({
     io.observe(container);
 
     const onVisibility = () => {
-      isPageVisible = !document.hidden && !isPlayerOpen();
+      isPageVisible = !document.hidden && !isPlayerOpen() && !document.documentElement.classList.contains('portfolio-loading');
       isPageVisible ? tryStart() : tryStop();
     };
     document.addEventListener('visibilitychange', onVisibility);
     document.addEventListener('portfolio-player-change', onVisibility);
+    document.addEventListener('portfolio-opening-finished', onVisibility);
     const onContextLost = event => { event.preventDefault(); tryStop(); onUnavailable?.(); };
     canvas.addEventListener('webglcontextlost', onContextLost);
 
@@ -326,6 +327,7 @@ const WebThreads = ({
       io.disconnect();
       document.removeEventListener('visibilitychange', onVisibility);
       document.removeEventListener('portfolio-player-change', onVisibility);
+      document.removeEventListener('portfolio-opening-finished', onVisibility);
       canvas.removeEventListener('webglcontextlost', onContextLost);
       window.removeEventListener('pointermove', onMouseMove);
       window.removeEventListener('blur', onMouseLeave);
